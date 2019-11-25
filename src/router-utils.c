@@ -174,7 +174,7 @@ router_string_dict_t *router_parse_query(const char *query_str)
 				break;
 			}
 		}
-		router_string_dict_set(query, pairs[i], pairs[i] + split_i);
+		router_string_dict_set(query, pairs[i], pairs[i] + split_i + 1);
 		router_mem_free(pairs[i]);
 	}
 	free(pairs);

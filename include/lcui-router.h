@@ -69,9 +69,6 @@ void router_location_set_name(router_location_t *location, const char *name);
 
 router_location_t *router_location_duplicate(const router_location_t *location);
 
-router_location_t *router_location_from_path(const router_location_t *raw,
-					     const router_route_t *current);
-
 router_location_t *router_location_normalize(const router_location_t *raw,
 					     const router_route_t *current);
 

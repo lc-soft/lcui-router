@@ -1,3 +1,6 @@
+#ifndef ROUTER_H
+#define ROUTER_H
+
 #include <LCUI.h>
 #include "lcui-router.h"
 
@@ -74,3 +77,5 @@ struct router_t {
 	router_matcher_t *matcher;
 	router_history_t *history;
 };
+
+#endif

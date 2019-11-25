@@ -19,8 +19,12 @@ void router_location_destroy(router_location_t *location)
 	router_mem_free(location->name);
 	router_mem_free(location->hash);
 	router_mem_free(location->path);
-	router_string_dict_destroy(location->params);
-	router_string_dict_destroy(location->query);
+	if (location->params) {
+		router_string_dict_destroy(location->params);
+	}
+	if (location->query) {
+		router_string_dict_destroy(location->query);
+	}
 	location->query = NULL;
 	location->params = NULL;
 	free(location);
@@ -46,14 +50,14 @@ void router_location_set_name(router_location_t *location, const char *name)
 	}
 }
 
-router_location_t *router_location_from_path(const router_location_t *raw,
-					     const router_route_t *current)
+static router_location_t *router_location_from_path(
+    const router_location_t *raw, const router_route_t *current)
 {
 	size_t i;
-	char *path;
-	char *hash;
-	char *query_str;
-	const char *base_path;
+	char *path = NULL;
+	char *hash = NULL;
+	char *query_str = NULL;
+	const char *base_path = current ? current->path : "/";
 	router_location_t *location;
 	router_string_dict_t *query;
 
@@ -68,18 +72,13 @@ router_location_t *router_location_from_path(const router_location_t *raw,
 		}
 		for (i = 0; path[i]; ++i) {
 			if (path[i] == '?') {
-				query_str = strdup(raw->path + i);
+				query_str = strdup(raw->path + i + 1);
 				path[i] = 0;
 				break;
 			}
 		}
-	} else {
-		path = NULL;
-		hash = NULL;
-		query_str = NULL;
 	}
 	location = router_location_create(NULL, NULL);
-	base_path = current ? current->path : "/";
 	if (path) {
 		location->path = router_path_resolve(path, base_path);
 		free(path);
@@ -91,7 +90,7 @@ router_location_t *router_location_from_path(const router_location_t *raw,
 	location->query = query;
 	location->hash = hash ? strdup(hash) : NULL;
 	location->normalized = TRUE;
-	free(query);
+	router_mem_free(query_str);
 	return location;
 }
 
