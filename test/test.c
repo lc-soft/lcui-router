@@ -12,18 +12,60 @@
 static size_t tests_passed = 0;
 static size_t tests_total = 0;
 
-#define describe(NAME, FUNC)       \
-	Logger_Info("%s\n", NAME); \
+#define describe(NAME, FUNC)         \
+	Logger_Info("\n%s\n", NAME); \
 	FUNC();
 
-#define it(NAME, ACTUAL, EXCEPT)                  \
-	tests_total++;                            \
-	if ((ACTUAL) == (EXCEPT)) {               \
-		Logger_Info("    √ %s\n", NAME);  \
-		tests_passed++;                   \
-	} else {                                  \
-		Logger_Error("    × %s\n", NAME); \
+void it_i(const char *name, int actual, int expected)
+{
+	tests_total++;
+	if (actual == expected) {
+		Logger_Info("    √ %s == %d\n", name, expected);
+		tests_passed++;
+		return;
 	}
+	Logger_Error("    × %s == %d\n", name, expected);
+	Logger_Error("        AssertionError: %d == %d\n", actual, expected);
+	Logger_Info("        + expected - actual\n\n");
+	Logger_Info("        - %d\n", actual);
+	Logger_Info("        + %d\n\n", expected);
+}
+
+void it_b(const char *name, router_boolean_t actual, router_boolean_t expected)
+{
+	const char actual_str = actual ? "true" : "false";
+	const char expected_str = expected ? "true" : "false";
+
+	tests_total++;
+	if (actual == expected) {
+		Logger_Info("    √ %s\n", name);
+		tests_passed++;
+		return;
+	}
+	Logger_Error("    × %s == %d\n", name);
+	Logger_Error("        AssertionError: %s == %s\n", actual_str,
+		     expected_str);
+	Logger_Info("        + expected - actual\n\n");
+	Logger_Info("        - %s\n", actual_str);
+	Logger_Info("        + %s\n\n", expected_str);
+}
+
+void it_s(const char *name, const char *actual, const char *expected)
+{
+	tests_total++;
+	if ((actual && expected && strcmp(actual, expected) == 0) ||
+	    actual == expected) {
+		Logger_Info("    √ %s == '%s'\n", name, expected);
+		tests_passed++;
+		return;
+	}
+	Logger_Error("    × %s == '%s'\n", name, expected);
+	Logger_Error("        AssertionError: '%s' == '%s'\n", actual,
+		     expected);
+	Logger_Info("        + expected - actual\n\n");
+	Logger_Info("        - %s\n", actual);
+	Logger_Info("        + %s\n\n", expected);
+}
 
 void test_router_location(void)
 {
@@ -32,31 +74,184 @@ void test_router_location(void)
 	const char *str;
 
 	raw = router_location_create(NULL, "/search?type=issue&order=desc");
-	location = router_location_normalize(raw, NULL);
+	location = router_location_normalize(raw, NULL, FALSE);
 
 	str = router_string_dict_get(location->query, "type");
-	it("location.query.type == 'issue'", strcmp(str, "issue"), 0);
+	it_s("location.query.type == 'issue'", str, "issue");
+
 	str = router_string_dict_get(location->query, "order");
-	it("location.query.order == 'desc'", strcmp(str, "desc"), 0);
+	it_s("location.query.order == 'desc'", str, "desc");
+
 	str = location->path;
-	it("location.path == '/search'", strcmp(str, "/search"), 0);
+	it_s("location.path == '/search'", str, "/search");
 
 	router_location_destroy(raw);
 	router_location_destroy(location);
 
 	raw = router_location_create(NULL, "/search?type=issue#pagination");
-	location = router_location_normalize(raw, NULL);
+	location = router_location_normalize(raw, NULL, FALSE);
 
 	str = location->hash;
-	it("location.hash == '#pagination'", strcmp(str, "#pagination"), 0);
+	it_s("location.hash == '#pagination'", str, "#pagination");
 
 	router_location_destroy(raw);
 	router_location_destroy(location);
 }
 
+void test_router_matcher(void)
+{
+	router_t *router;
+	router_config_t *config;
+	router_route_t *route;
+	router_route_record_t *route_user_show;
+	router_resolved_t *resolved;
+	router_location_t *location;
+	const router_route_record_t *record;
+	const char *str;
+
+	router = router_create(NULL);
+	config = router_config_create();
+	router_config_set_path(config, "/home");
+	router_config_set_component(config, NULL, "home");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "/files");
+	router_config_set_component(config, NULL, "files");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "/files/*");
+	router_config_set_component(config, NULL, "files");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "/users");
+	router_config_set_component(config, NULL, "user-index");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "/users/:username");
+	router_config_set_component(config, NULL, "user-show");
+	route_user_show = router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "");
+	router_config_set_component(config, NULL, "user-overview");
+	router_add_route_record(router, config, route_user_show);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "profile");
+	router_config_set_component(config, NULL, "user-profile");
+	router_add_route_record(router, config, route_user_show);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "posts");
+	router_config_set_component(config, NULL, "user-posts");
+	router_add_route_record(router, config, route_user_show);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "/users/:id");
+	router_config_set_component(config, NULL, "users");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "/about");
+	router_config_set_component(config, NULL, "about");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "*");
+	router_config_set_component(config, NULL, "not-found");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	location = router_location_create(NULL, "/users/root");
+	resolved = router_resolve(router, location, FALSE);
+	router_location_destroy(location);
+	route = router_resolved_get_route(resolved);
+	str = router_route_get_param(route, "username");
+	it_s("resolved.route.params.username", str, "root");
+	router_resolved_destroy(resolved);
+
+	location = router_location_create(NULL, "/users/root/posts");
+	resolved = router_resolve(router, location, FALSE);
+	router_location_destroy(location);
+	route = router_resolved_get_route(resolved);
+	record = router_route_get_matched_record(route, 0);
+	it_b("resolved.route.matched[0] != null", !!record, TRUE);
+	if (record) {
+		str = router_route_record_get_component(record, NULL);
+	} else {
+		str = NULL;
+	}
+	it_s("resolved.route.matched[0].components.default", str, "user-show");
+	route = router_resolved_get_route(resolved);
+	record = router_route_get_matched_record(route, 1);
+	it_b("resolved.route.matched[1] != null", !!record, TRUE);
+	if (record) {
+		str = router_route_record_get_component(record, NULL);
+	} else {
+		str = NULL;
+	}
+	it_s("resolved.route.matched[1].components.default", str, "user-posts");
+
+	router_resolved_destroy(resolved);
+	router_destroy(router);
+}
+
+void test_router_utils(void)
+{
+	char *str;
+
+	str = router_path_resolve("", NULL, TRUE);
+	it_s("path.resolve('', null, true) == '/'", str, "/");
+	free(str);
+
+	str = router_path_resolve("", "/root", TRUE);
+	it_s("path.resolve('', '/root', true)", str, "/root");
+	free(str);
+
+	str = router_path_resolve("hello/../world/./", NULL, TRUE);
+	it_s("path.resolve('hello/../world/./', null, true)", str, "/world");
+	free(str);
+
+	str = router_path_resolve("/root/path", "base/path", TRUE);
+	it_s("path.resolve('/root/path', 'base/path', true)", str,
+	     "/root/path");
+	free(str);
+
+	str = router_path_resolve("../../profile", "base/path/to/file", TRUE);
+	it_s("path.resolve('../../profile', 'base/path/to/file', true)", str,
+	     "/base/path/profile");
+	free(str);
+
+	str = router_path_resolve("profile", "base/file", FALSE);
+	it_s("path.resolve('profile', 'base/profile', false)", str,
+	     "/base/profile");
+	free(str);
+
+	str = router_path_resolve("/profile", "base/file", FALSE);
+	it_s("path.resolve('/profile', 'base/profile', false)", str,
+	     "/profile");
+	free(str);
+}
+
 int main(void)
 {
+	describe("router utils", test_router_utils);
 	describe("router location", test_router_location);
+	describe("router matcher", test_router_matcher);
 	Logger_Info("\n%u tests, %u passed.\n", tests_total, tests_passed);
 	return tests_total - tests_passed;
 }
