@@ -9,20 +9,29 @@ router_t *router_create(const char *name)
 	router_t *router;
 
 	router = malloc(sizeof(router_t));
+	if (!name) {
+		name = "default";
+	}
 	router->name = strdup(name);
 	router->link_active_class = strdup("router-link-active");
 	router->link_exact_active_class = strdup("router-link-exact-active");
 	router->matcher = router_matcher_create();
+	router->history = router_history_create();
+	if (!self.routers) {
+		self.routers = Dict_Create(&DictType_StringKey, NULL);
+	}
 	Dict_Add(self.routers, router->name, router);
 	return router;
 }
 
 void router_destroy(router_t *router)
 {
+	Dict_Delete(self.routers, router->name);
 	router_mem_free(router->name);
 	router_mem_free(router->link_active_class);
 	router_mem_free(router->link_exact_active_class);
 	router_matcher_destroy(router->matcher);
+	router_history_destroy(router->history);
 	router->matcher = NULL;
 	free(router);
 }
@@ -61,16 +70,28 @@ void router_unwatch(router_t *router, router_watcher_t *watcher)
 
 // https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/dist/vue-router.esm.js#L2827
 
-router_resolved_t *router_resolve(router_t *router, router_location_t *location)
+router_resolved_t *router_resolve(router_t *router, router_location_t *location,
+				  router_boolean_t append)
 {
-	router_resolved_t *resolved;
 	const router_route_t *current;
+	router_resolved_t *resolved;
 
-	resolved = malloc(sizeof(router_resolved_t));
 	current = router->history->current;
-	resolved->location = router_location_normalize(location, current);
+	resolved = malloc(sizeof(router_resolved_t));
+	resolved->location =
+	    router_location_normalize(location, current, append);
 	resolved->route = router_match(router, resolved->location, current);
 	return resolved;
+}
+
+router_location_t *router_resolved_get_location(router_resolved_t *resolved)
+{
+	return resolved->location;
+}
+
+router_route_t *router_resolved_get_route(router_resolved_t *resolved)
+{
+	return resolved->route;
 }
 
 void router_resolved_destroy(router_resolved_t *resolved)
@@ -89,7 +110,7 @@ void router_push(router_t *router, router_location_t *location)
 {
 	router_resolved_t *resolved;
 
-	resolved = router_resolve(router, location);
+	resolved = router_resolve(router, location, FALSE);
 	router_history_push(router->history, resolved->route);
 	resolved->route = NULL;
 	router_resolved_destroy(resolved);
@@ -99,7 +120,7 @@ void router_replace(router_t *router, router_location_t *location)
 {
 	router_resolved_t *resolved;
 
-	resolved = router_resolve(router, location);
+	resolved = router_resolve(router, location, FALSE);
 	router_history_replace(router->history, resolved->route);
 	resolved->route = NULL;
 	router_resolved_destroy(resolved);

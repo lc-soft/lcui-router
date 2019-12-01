@@ -31,8 +31,8 @@ int router_string_dict_set(router_string_dict_t *dict, const char *key,
 			   const char *value);
 const char *router_string_dict_get(router_string_dict_t *dict, const char *key);
 
-void router_string_dict_extend(router_string_dict_t *target,
-			       router_string_dict_t *other);
+size_t router_string_dict_extend(router_string_dict_t *target,
+				 router_string_dict_t *other);
 
 router_string_dict_t *router_string_dict_duplicate(
     router_string_dict_t *target);
@@ -46,10 +46,8 @@ const char *router_path_parse_key(const char *path, char key[256],
 
 size_t router_path_parse_keys(const char *path, router_linkedlist_t *keys);
 
-size_t router_path_scan_separators(const char *path,
-				   size_t **separator_indexes);
-
-char *router_path_resolve(const char *path, const char *base_path);
+char *router_path_resolve(const char *relative, const char *base,
+			  router_boolean_t append);
 
 router_string_dict_t *router_parse_query(const char *query_str);
 
@@ -70,7 +68,14 @@ void router_location_set_name(router_location_t *location, const char *name);
 router_location_t *router_location_duplicate(const router_location_t *location);
 
 router_location_t *router_location_normalize(const router_location_t *raw,
-					     const router_route_t *current);
+					     const router_route_t *current,
+					     router_boolean_t append);
+
+const char *router_location_get_param(const router_location_t *location,
+				      const char *key);
+
+const char *router_location_get_query(const router_location_t *location,
+				      const char *key);
 
 char *router_location_stringify(const router_location_t *location);
 
@@ -95,6 +100,12 @@ void router_route_destroy(router_route_t *route);
 
 const router_route_record_t *router_route_get_matched_record(
     const router_route_t *route, size_t index);
+
+const char *router_route_get_param(const router_route_t *route,
+				   const char *key);
+
+const char *router_route_get_query(const router_route_t *route,
+				   const char *key);
 
 // router_matcher
 
@@ -150,8 +161,12 @@ router_watcher_t *router_watch(router_t *router, router_callback_t callback,
 
 void router_unwatch(router_t *router, router_watcher_t *watcher);
 
-router_resolved_t *router_resolve(router_t *router,
-				  router_location_t *location);
+router_resolved_t *router_resolve(router_t *router, router_location_t *location,
+				  router_boolean_t append);
+
+router_location_t *router_resolved_get_location(router_resolved_t *resolved);
+
+router_route_t *router_resolved_get_route(router_resolved_t *resolved);
 
 void router_resolved_destroy(router_resolved_t *resolved);
 

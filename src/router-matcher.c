@@ -28,25 +28,25 @@ router_route_record_t *router_matcher_add_route_record(
 {
 	size_t i, len;
 	router_route_record_t *record;
+	const char *base_path = parent ? parent->path : NULL;
 	LinkedListNode *node;
 
 	record = router_route_record_create();
+	record->path = router_path_resolve(config->path, base_path, TRUE);
+	record->components = router_string_dict_duplicate(config->components);
 	if (config->name) {
 		if (Dict_FetchValue(matcher->name_map, config->name)) {
-			Logger_Error("duplicate named routes definition: "
-				     "{ name: \"%s\", path: \"%s\" }",
-				     config->name, config->path);
+			Logger_Error(
+			    "[router] duplicate named routes definition: "
+			    "{ name: \"%s\", path: \"%s\" }\n",
+			    config->name, config->path);
 			router_route_record_destroy(record);
 			return NULL;
 		}
 		record->name = strdup(config->name);
 		Dict_Add(matcher->name_map, record->name, record);
 	}
-	router_route_record_set_path(record, config->path);
-	if (Dict_FetchValue(matcher->path_map, record->path)) {
-		Logger_Warning("duplicate routes definition: { path: \"%s\" }",
-			       record->path);
-	} else {
+	if (!Dict_FetchValue(matcher->path_map, record->path)) {
 		LinkedList_AppendNode(&matcher->path_list, &record->node);
 		Dict_Add(matcher->path_map, record->path, record);
 	}
@@ -75,54 +75,44 @@ router_route_record_t *router_matcher_add_route_record(
 router_boolean_t router_matcher_match_route(router_route_record_t *record,
 					    const char *path, Dict *params)
 {
-	char *key;
-	char *value;
-	size_t len;
-	size_t base_i;
-	size_t *base_seps;
-	size_t base_seps_i;
-	size_t base_seps_len;
-	size_t target_i;
-	size_t *target_seps;
-	size_t target_seps_i;
-	size_t target_seps_len;
+	char **nodes;
+	char **record_nodes;
+	size_t i;
+	size_t nodes_count;
+	size_t record_nodes_count;
+	router_boolean_t matched = TRUE;
 
-	base_seps_i = 1, target_seps_i = 1;
-	base_seps_len = router_path_scan_separators(record->path, &base_seps);
-	target_seps_len = router_path_scan_separators(path, &target_seps);
+	nodes_count = strsplit(path, "/", &nodes);
+	record_nodes_count = strsplit(record->path, "/", &record_nodes);
 	// record->path: "/example/:type/:name/info"
 	// path: "/exmaple/food/orange/info"
-	while (target_seps_i < target_seps_len && base_seps_i < base_seps_len) {
-		base_i = base_seps[base_seps_i - 1] + 1;
-		target_i = target_seps[target_seps_i - 1] + 1;
-		// if is param key
-		if (record->path[base_i] == ':') {
-			base_i++;
-			len = base_seps[base_seps_i] - base_i;
-			key = malloc(sizeof(char) * (len + 1));
-			strncpy(key, record->path + base_i, len);
-			key[len] = 0;
-			len = target_seps[target_seps_i] - target_i;
-			value = malloc(sizeof(char) * (len + 1));
-			strncpy(value, path + target_i, len);
-			value[len] = 0;
-			Dict_Add(params, key, value);
-			free(key);
-			free(value);
-		} else {
-			len = base_seps[base_seps_i] - base_i;
-			if (len != target_seps[target_seps_i] - target_i) {
-				return FALSE;
+	if (nodes_count == record_nodes_count) {
+		for (i = 0; i < nodes_count; ++i) {
+			if (strcmp(record_nodes[i], nodes[i]) == 0) {
+				continue;
 			}
-			if (strncmp(record->path + base_i, path + target_i,
-				    len)) {
-				return FALSE;
+			if (record_nodes[i][0] == ':') {
+				router_string_dict_set(
+				    params, record_nodes[i] + 1, nodes[i]);
+				continue;
+			}
+			if (strcmp(record_nodes[i], nodes[i]) != 0) {
+				matched = FALSE;
+				break;
 			}
 		}
-		base_seps_i++;
-		target_seps_i++;
+	} else {
+		matched = FALSE;
 	}
-	return TRUE;
+	for (i = 0; i < nodes_count; ++i) {
+		free(nodes[i]);
+	}
+	for (i = 0; i < record_nodes_count; ++i) {
+		free(record_nodes[i]);
+	}
+	free(nodes);
+	free(record_nodes);
+	return matched;
 }
 
 // https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/dist/vue-router.esm.js#L1457
@@ -139,7 +129,7 @@ router_route_t *router_matcher_match_by_name(
 
 	record = Dict_FetchValue(matcher->name_map, location->name);
 	if (!record) {
-		Logger_Warning("route with name '%s' does not exist",
+		Logger_Warning("[router] route with name '%s' does not exist",
 			       location->name);
 		return router_route_create(NULL, location);
 	}
@@ -171,7 +161,7 @@ router_route_t *router_matcher_match_by_path(router_matcher_t *matcher,
 	router_linkedlist_node_t *node;
 
 	for (LinkedList_Each(node, &matcher->path_list)) {
-		record = Dict_FetchValue(matcher->path_map, node->data);
+		record = node->data;
 		if (router_matcher_match_route(record, location->path,
 					       location->params)) {
 			return router_route_create(record, location);
@@ -189,7 +179,8 @@ router_route_t *router_matcher_match(router_matcher_t *matcher,
 	router_route_t *route;
 	router_location_t *location;
 
-	location = router_location_normalize(raw_location, current_route);
+	location =
+	    router_location_normalize(raw_location, current_route, FALSE);
 	if (location->name) {
 		route = router_matcher_match_by_name(matcher, location,
 						     current_route);

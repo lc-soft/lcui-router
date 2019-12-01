@@ -31,23 +31,6 @@ const char *router_path_parse_key(const char *path, char key[256],
 	return p;
 }
 
-size_t router_path_scan_separators(const char *path, size_t **separator_indexes)
-{
-	size_t i;
-	size_t len = strlen(path);
-	size_t count = 0;
-
-	*separator_indexes = malloc(sizeof(size_t) * len / 2);
-	*separator_indexes[count++] = 0;
-	for (i = 0; i < len; ++i) {
-		if (path[i] == '/') {
-			*separator_indexes[count++] = i;
-		}
-	}
-	*separator_indexes[count++] = len;
-	return count;
-}
-
 size_t router_path_parse_keys(const char *path, router_linkedlist_t *keys)
 {
 	const char *next;
@@ -107,9 +90,11 @@ char *router_path_fill_params(const char *path, router_string_dict_t *params)
 
 // https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/dist/vue-router.esm.js#L401
 
-char *router_path_resolve(const char *relative, const char *base)
+char *router_path_resolve(const char *relative, const char *base,
+			  router_boolean_t append)
 {
 	char *p;
+	char *q;
 	char *path;
 	char **stack;
 	char **segments;
@@ -122,13 +107,18 @@ char *router_path_resolve(const char *relative, const char *base)
 	if (first_char == '/') {
 		return strdup(relative);
 	}
-	path = malloc(strlen(relative) + strlen(base) + 1);
+	if (!base || !base[0]) {
+		base = "/";
+	}
+	path = malloc(strlen(relative) + strlen(base) + 4);
 	if (first_char == '?' || first_char == '#') {
 		return strcat(strcpy(path, base), relative);
 	}
 	stack_size = strsplit(base, "/", &stack);
-	stack_size--;
-	router_mem_free(stack[stack_size]);
+	if (!append || !stack[stack_size - 1][0]) {
+		stack_size--;
+		router_mem_free(stack[stack_size]);
+	}
 	segments_size = strsplit(relative, "/", &segments);
 	for (i = 0; i < segments_size; ++i) {
 		if (strcmp(segments[i], "..") == 0) {
@@ -143,12 +133,18 @@ char *router_path_resolve(const char *relative, const char *base)
 			router_mem_free(segments[i]);
 		}
 	}
+	path[0] = '/';
+	path[1] = 0;
 	for (i = 0, p = path; i < stack_size; ++i) {
-		strcpy(p, stack[i]);
+		if (stack[i][0]) {
+			*p = '/';
+			p++;
+			for (q = stack[i]; *q; ++q, ++p) {
+				*p = *q;
+			}
+			*p = 0;
+		}
 		free(stack[i]);
-		p++;
-		*p = '/';
-		p++;
 	}
 	free(stack);
 	free(segments);
@@ -166,6 +162,9 @@ router_string_dict_t *router_parse_query(const char *query_str)
 	router_string_dict_t *query;
 
 	query = router_string_dict_create();
+	if (!query_str) {
+		return query;
+	}
 	pairs_size = strsplit(query_str, "&", &pairs);
 	for (i = 0; i < pairs_size; ++i) {
 		for (split_i = 0; pairs[i][split_i]; ++split_i) {

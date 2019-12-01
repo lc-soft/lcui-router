@@ -36,9 +36,23 @@ const char *router_string_dict_get(router_string_dict_t *dict, const char *key)
 	return Dict_FetchValue(dict, key);
 }
 
-void router_string_dict_extend(router_string_dict_t *target,
+size_t router_string_dict_extend(router_string_dict_t *target,
 			       router_string_dict_t *other)
 {
+	size_t count = 0;
+	DictEntry *entry;
+	DictIterator *iter;
+
+	if (!other) {
+		return count;
+	}
+	iter = Dict_GetIterator(other);
+	while ((entry = Dict_Next(iter))) {
+		router_string_dict_set(target, entry->key, entry->v.val);
+		++count;
+	}
+	Dict_ReleaseIterator(iter);
+	return count;
 }
 
 router_string_dict_t *router_string_dict_duplicate(router_string_dict_t *target)

@@ -39,5 +39,8 @@ void router_route_record_set_path(router_route_record_t *record,
 const char *router_route_record_get_component(
     const router_route_record_t *record, const char *key)
 {
+	if (!key) {
+		key = "default";
+	}
 	return router_string_dict_get(record->components, key);
 }

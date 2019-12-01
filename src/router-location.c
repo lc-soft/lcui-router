@@ -51,7 +51,8 @@ void router_location_set_name(router_location_t *location, const char *name)
 }
 
 static router_location_t *router_location_from_path(
-    const router_location_t *raw, const router_route_t *current)
+    const router_location_t *raw, const router_route_t *current,
+    router_boolean_t append)
 {
 	size_t i;
 	char *path = NULL;
@@ -80,7 +81,7 @@ static router_location_t *router_location_from_path(
 	}
 	location = router_location_create(NULL, NULL);
 	if (path) {
-		location->path = router_path_resolve(path, base_path);
+		location->path = router_path_resolve(path, base_path, append);
 		free(path);
 	} else {
 		location->path = strdup(base_path);
@@ -97,7 +98,8 @@ static router_location_t *router_location_from_path(
 // https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/dist/vue-router.esm.js#L936
 
 router_location_t *router_location_normalize(const router_location_t *raw,
-					     const router_route_t *current)
+					     const router_route_t *current,
+					     router_boolean_t append)
 {
 	Dict *params;
 	router_location_t *location;
@@ -130,7 +132,25 @@ router_location_t *router_location_normalize(const router_location_t *raw,
 		}
 		return location;
 	}
-	return router_location_from_path(raw, current);
+	return router_location_from_path(raw, current, append);
+}
+
+const char *router_location_get_param(const router_location_t *location,
+				      const char *key)
+{
+	if (!location->params) {
+		return NULL;
+	}
+	return router_string_dict_get(location->params, key);
+}
+
+const char *router_location_get_query(const router_location_t *location,
+				      const char *key)
+{
+	if (!location->query) {
+		return NULL;
+	}
+	return router_string_dict_get(location->query, key);
 }
 
 char *router_location_stringify(const router_location_t *location)

@@ -12,6 +12,8 @@ router_route_t *router_route_create(const router_route_record_t *record,
 		route->name = strdup(location->name);
 	} else if (record && record->name) {
 		route->name = strdup(record->name);
+	} else {
+		route->name = NULL;
 	}
 	route->path = strdup(location->path ? location->path : "/");
 	route->hash = strdup(location->hash ? location->hash : "");
@@ -37,4 +39,20 @@ const router_route_record_t *router_route_get_matched_record(
     const router_route_t *route, size_t index)
 {
 	return LinkedList_Get(&route->matched, index);
+}
+
+const char *router_route_get_param(const router_route_t *route, const char *key)
+{
+	if (!route->params) {
+		return NULL;
+	}
+	return router_string_dict_get(route->params, key);
+}
+
+const char *router_route_get_query(const router_route_t *route, const char *key)
+{
+	if (!route->query) {
+		return NULL;
+	}
+	return router_string_dict_get(route->query, key);
 }
