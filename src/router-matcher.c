@@ -77,32 +77,63 @@ router_boolean_t router_matcher_match_route(router_route_record_t *record,
 {
 	char **nodes;
 	char **record_nodes;
-	size_t i;
+	char *path_match = NULL;
+	size_t i, j;
 	size_t nodes_count;
 	size_t record_nodes_count;
+	size_t path_match_len = 0;
+	size_t path_match_i = 0;
 	router_boolean_t matched = TRUE;
+	router_boolean_t match_all = FALSE;
 
 	nodes_count = strsplit(path, "/", &nodes);
 	record_nodes_count = strsplit(record->path, "/", &record_nodes);
 	// record->path: "/example/:type/:name/info"
 	// path: "/exmaple/food/orange/info"
-	if (nodes_count == record_nodes_count) {
-		for (i = 0; i < nodes_count; ++i) {
-			if (strcmp(record_nodes[i], nodes[i]) == 0) {
-				continue;
+	for (i = 0, j = 0; i < nodes_count && j < record_nodes_count; ++i) {
+		if (!match_all && strcmp(record_nodes[j], "*") == 0) {
+			// record->path: /files/*
+			// path: /files/path/to/file
+			// path_match: path/to/file
+			if (j + 1 != record_nodes_count) {
+				Logger_Warning("[router] the asterisk should "
+					       "be at the end\n");
 			}
-			if (record_nodes[i][0] == ':') {
-				router_string_dict_set(
-				    params, record_nodes[i] + 1, nodes[i]);
-				continue;
-			}
-			if (strcmp(record_nodes[i], nodes[i]) != 0) {
-				matched = FALSE;
-				break;
-			}
+			match_all = TRUE;
 		}
+		if (match_all) {
+			if (path_match_len > 0) {
+				path_match_len += 1;
+			}
+			path_match_len += strlen(nodes[i]);
+			path_match = realloc(
+			    path_match, sizeof(char) * (path_match_len + 1));
+			if (path_match_i > 0) {
+				strcpy(path_match + path_match_i, "/");
+				++path_match_i;
+			}
+			strcpy(path_match + path_match_i, nodes[i]);
+			path_match_i = path_match_len;
+			continue;
+		}
+		if (strcmp(record_nodes[j], nodes[i]) == 0) {
+		} else if (record_nodes[j][0] == ':') {
+			router_string_dict_set(params, record_nodes[j] + 1,
+					       nodes[i]);
+		} else if (strcmp(record_nodes[j], nodes[i]) != 0) {
+			matched = FALSE;
+			break;
+		}
+		++j;
+	}
+	if (path_match) {
+		matched = matched && i == nodes_count;
+		if (matched) {
+			router_string_dict_set(params, "pathMatch", path_match);
+		}
+		free(path_match);
 	} else {
-		matched = FALSE;
+		matched = matched && nodes_count == record_nodes_count;
 	}
 	for (i = 0; i < nodes_count; ++i) {
 		free(nodes[i]);

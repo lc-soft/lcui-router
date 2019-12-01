@@ -33,8 +33,8 @@ void it_i(const char *name, int actual, int expected)
 
 void it_b(const char *name, router_boolean_t actual, router_boolean_t expected)
 {
-	const char actual_str = actual ? "true" : "false";
-	const char expected_str = expected ? "true" : "false";
+	const char *actual_str = actual ? "true" : "false";
+	const char *expected_str = expected ? "true" : "false";
 
 	tests_total++;
 	if (actual == expected) {
@@ -42,7 +42,7 @@ void it_b(const char *name, router_boolean_t actual, router_boolean_t expected)
 		tests_passed++;
 		return;
 	}
-	Logger_Error("    × %s == %d\n", name);
+	Logger_Error("    × %s\n", name);
 	Logger_Error("        AssertionError: %s == %s\n", actual_str,
 		     expected_str);
 	Logger_Info("        + expected - actual\n\n");
@@ -181,7 +181,7 @@ void test_router_matcher(void)
 	router_location_destroy(location);
 	route = router_resolved_get_route(resolved);
 	str = router_route_get_param(route, "username");
-	it_s("resolved.route.params.username", str, "root");
+	it_s("match('/users/root').route.params.username", str, "root");
 	router_resolved_destroy(resolved);
 
 	location = router_location_create(NULL, "/users/root/posts");
@@ -189,24 +189,61 @@ void test_router_matcher(void)
 	router_location_destroy(location);
 	route = router_resolved_get_route(resolved);
 	record = router_route_get_matched_record(route, 0);
-	it_b("resolved.route.matched[0] != null", !!record, TRUE);
+	it_b("match('/users/root/posts').route.matched[0] != null", !!record,
+	     TRUE);
 	if (record) {
 		str = router_route_record_get_component(record, NULL);
 	} else {
 		str = NULL;
 	}
-	it_s("resolved.route.matched[0].components.default", str, "user-show");
+	it_s("match('/users/root/posts').route.matched[0].components.default",
+	     str, "user-show");
 	route = router_resolved_get_route(resolved);
 	record = router_route_get_matched_record(route, 1);
-	it_b("resolved.route.matched[1] != null", !!record, TRUE);
+	it_b("match('/users/root/posts').route.matched[1] != null", !!record,
+	     TRUE);
 	if (record) {
 		str = router_route_record_get_component(record, NULL);
 	} else {
 		str = NULL;
 	}
-	it_s("resolved.route.matched[1].components.default", str, "user-posts");
-
+	it_s("match('/users/root/posts').route.matched[1].components.default",
+	     str, "user-posts");
 	router_resolved_destroy(resolved);
+
+	location = router_location_create(NULL, "/other/path/to/file");
+	resolved = router_resolve(router, location, FALSE);
+	router_location_destroy(location);
+	route = router_resolved_get_route(resolved);
+	record = router_route_get_matched_record(route, 0);
+	it_b("match('/other/path/to/file').route.matched[0] != null", !!record,
+	     TRUE);
+	if (record) {
+		str = router_route_record_get_component(record, NULL);
+	} else {
+		str = NULL;
+	}
+	it_s("match('/other/path/to/file').route.matched[0].components.default",
+	     record ? router_route_record_get_component(record, NULL) : NULL,
+	     "not-found");
+	it_s("match('/other/path/to/file').route.params.pathMatch",
+	     route ? router_route_get_param(route, "pathMatch") : NULL,
+	     "other/path/to/file");
+	router_resolved_destroy(resolved);
+
+	location = router_location_create(NULL, "/files/path/to/file");
+	resolved = router_resolve(router, location, FALSE);
+	router_location_destroy(location);
+	route = router_resolved_get_route(resolved);
+	record = router_route_get_matched_record(route, 0);
+	it_s("match('/files/path/to/file').route.matched[0].components.default",
+	     record ? router_route_record_get_component(record, NULL) : NULL,
+	     "files");
+	it_s("match('/files/path/to/file').route.params.pathMatch",
+	     route ? router_route_get_param(route, "pathMatch") : NULL,
+	     "path/to/file");
+	router_resolved_destroy(resolved);
+
 	router_destroy(router);
 }
 
