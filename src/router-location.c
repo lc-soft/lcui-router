@@ -89,7 +89,7 @@ static router_location_t *router_location_from_path(
 	query = router_parse_query(query_str);
 	router_string_dict_extend(query, raw->query);
 	location->query = query;
-	location->hash = hash ? strdup(hash) : NULL;
+	location->hash = hash;
 	location->normalized = TRUE;
 	router_mem_free(query_str);
 	return location;

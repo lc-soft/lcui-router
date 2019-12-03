@@ -57,7 +57,7 @@ void router_history_push(router_history_t *history, router_route_t *route)
 {
 	router_history_change(history, route);
 	LinkedList_Append(&history->routes, route);
-	history->index = history->routes.length - 1;
+	history->index = (int)history->routes.length - 1;
 }
 
 void router_history_replace(router_history_t *history, router_route_t *route)
@@ -75,7 +75,7 @@ void router_history_go(router_history_t *history, int delta)
 {
 	history->index += delta;
 	if ((size_t)history->index >= history->routes.length) {
-		history->index = history->routes.length - 1;
+		history->index = (int)history->routes.length - 1;
 	}
 	if (history->index < 0) {
 		history->index = 0;

@@ -18,6 +18,7 @@ void router_matcher_destroy(router_matcher_t *matcher)
 	LinkedList_ClearData(&matcher->path_list, router_route_record_destroy);
 	matcher->name_map = NULL;
 	matcher->path_map = NULL;
+	free(matcher);
 }
 
 // https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/dist/vue-router.esm.js#L1282
@@ -33,7 +34,7 @@ router_route_record_t *router_matcher_add_route_record(
 
 	record = router_route_record_create();
 	record->path = router_path_resolve(config->path, base_path, TRUE);
-	record->components = router_string_dict_duplicate(config->components);
+	router_string_dict_extend(record->components, config->components);
 	if (config->name) {
 		if (Dict_FetchValue(matcher->name_map, config->name)) {
 			Logger_Error(

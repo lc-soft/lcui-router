@@ -36,7 +36,6 @@ struct router_route_record_t {
 	char *path;
 	const router_route_record_t *parent;
 	router_string_dict_t *components;
-	router_linkedlist_t param_names;
 	router_linkedlist_node_t node;
 };
 

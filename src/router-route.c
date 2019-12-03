@@ -32,6 +32,15 @@ void router_route_destroy(router_route_t *route)
 {
 	router_mem_free(route->name);
 	router_mem_free(route->path);
+	router_mem_free(route->full_path);
+	router_mem_free(route->hash);
+	if (route->params) {
+		router_string_dict_destroy(route->params);
+	}
+	if (route->query) {
+		router_string_dict_destroy(route->query);
+	}
+	LinkedList_Clear(&route->matched, NULL);
 	free(route);
 }
 
