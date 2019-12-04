@@ -1,0 +1,38 @@
+{
+  "name": "lcui-router",
+  "version": "0.1.0",
+  "description": "A router for control view switching and status in the LCUI applications.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "xmake run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lc-soft/lcui-router.git"
+  },
+  "keywords": [
+    "lcui",
+    "router",
+    "c"
+  ],
+  "husky": {
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
+  },
+  "author": "Liu <root@lc-soft.io> (https://lc-soft.io/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lc-soft/lcui-router/issues"
+  },
+  "homepage": "https://github.com/lc-soft/lcui-router#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^8.2.0",
+    "@commitlint/config-conventional": "^8.2.0",
+    "@commitlint/travis-cli": "^8.2.0",
+    "husky": "^3.1.0"
+  }
+}
