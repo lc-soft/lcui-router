@@ -6,7 +6,9 @@
 #include <LCUI.h>
 #include "lcui-router.h"
 
+#ifdef _WIN32
 #pragma warning(disable: 4996)
+#endif
 
 #define router_mem_free(ptr)       \
 	do {                       \
