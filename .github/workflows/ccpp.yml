@@ -13,18 +13,18 @@ jobs:
       run: bash <(curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh)
     - name: install LCUI
       run: |
-        - wget https://github.com/lc-soft/LCUI/archive/develop.zip -O LCUI-develop.zip
-        - unzip LCUI-develop.zip
-        - rm LCUI-develop.zip
-        - cd LCUI-develop
-        - sh ./autogen.sh
-        - configure
-        - make
-        - make install
+        wget https://github.com/lc-soft/LCUI/archive/develop.zip -O LCUI-develop.zip
+        unzip LCUI-develop.zip
+        rm LCUI-develop.zip
+        cd LCUI-develop
+        sh ./autogen.sh
+        ./configure
+        make
+        make install
     - name: make
       run: |
-        - xmake config -m coverage
-        - xmake -v
+        xmake config -m coverage
+        xmake -v
     - name: test
       run: xmake run test
     - name: upload coverage report
