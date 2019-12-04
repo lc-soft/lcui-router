@@ -6,6 +6,8 @@ compiler:
 before_install:
   - sudo apt-get install valgrind lcov -qq
   - pip install --user cpp-coveralls
+  - mkdir .tmp
+  - cd .tmp
   - bash <(curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh)
   - source ~/.xmake/profile
   - wget https://github.com/lc-soft/LCUI/archive/develop.zip -O LCUI-develop.zip
@@ -16,7 +18,8 @@ before_install:
   - ./configure
   - make
   - sudo make install
-  - cd ..
+  - cd ../..
+  - rm -rf .tmp
   - npm install
 
 before_script:
