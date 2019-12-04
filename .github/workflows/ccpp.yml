@@ -10,7 +10,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: install xmake
-      run: bash <(curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh)
+      run: |
+        bash <(curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh)
+        source ~/.xmake/profile
     - name: install LCUI
       run: |
         wget https://github.com/lc-soft/LCUI/archive/develop.zip -O LCUI-develop.zip
