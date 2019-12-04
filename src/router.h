@@ -1,8 +1,12 @@
-#ifndef ROUTER_H
+﻿#ifndef ROUTER_H
 #define ROUTER_H
 
+#include <string.h>
+#include <stdlib.h>
 #include <LCUI.h>
 #include "lcui-router.h"
+
+#pragma warning(disable: 4996)
 
 #define router_mem_free(ptr)       \
 	do {                       \

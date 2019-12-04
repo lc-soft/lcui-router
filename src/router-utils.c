@@ -1,16 +1,14 @@
-#include <string.h>
-#include "router.h"
+﻿#include "router.h"
 
 const char *router_path_parse_key(const char *path, char key[256],
 				  size_t *key_len)
 {
-	size_t i;
 	const char *p;
 
 	if (!path || !path[0]) {
 		return NULL;
 	}
-	for (i = 0, *key_len = 0, p = path;; ++p) {
+	for (*key_len = 0, p = path;; ++p) {
 		if (*p == '/' || *p == 0) {
 			key[*key_len] = 0;
 			if (*key_len < 2) {

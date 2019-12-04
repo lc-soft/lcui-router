@@ -1,4 +1,4 @@
-#include "router.h"
+﻿#include "router.h"
 
 static void *router_string_dict_val_dup(void *privdata, const void *val)
 {

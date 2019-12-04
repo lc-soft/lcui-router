@@ -1,4 +1,4 @@
-#include "router.h"
+﻿#include "router.h"
 
 router_history_t *router_history_create(void)
 {
@@ -12,12 +12,17 @@ router_history_t *router_history_create(void)
 	return history;
 }
 
+static void router_history_on_destroy_route(void *data)
+{
+	router_route_destroy(data);
+}
+
 void router_history_destroy(router_history_t *history)
 {
 	history->index = 0;
 	history->current = NULL;
 	LinkedList_ClearData(&history->watchers, free);
-	LinkedList_Clear(&history->watchers, router_route_destroy);
+	LinkedList_Clear(&history->routes, router_history_on_destroy_route);
 	free(history);
 }
 

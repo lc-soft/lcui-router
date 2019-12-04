@@ -1,4 +1,4 @@
-#include "router.h"
+﻿#include "router.h"
 
 // https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/dist/vue-router.esm.js#L266
 

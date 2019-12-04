@@ -1,4 +1,4 @@
-#include "router.h"
+﻿#include "router.h"
 
 router_matcher_t *router_matcher_create(void)
 {
@@ -11,11 +11,17 @@ router_matcher_t *router_matcher_create(void)
 	return matcher;
 }
 
+static void router_matcher_on_destroy_record(void *data)
+{
+	router_route_record_destroy(data);
+}
+
 void router_matcher_destroy(router_matcher_t *matcher)
 {
 	Dict_Release(matcher->name_map);
 	Dict_Release(matcher->path_map);
-	LinkedList_ClearData(&matcher->path_list, router_route_record_destroy);
+	LinkedList_ClearData(&matcher->path_list,
+			     router_matcher_on_destroy_record);
 	matcher->name_map = NULL;
 	matcher->path_map = NULL;
 	free(matcher);
