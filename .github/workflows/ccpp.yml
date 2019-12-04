@@ -1,0 +1,31 @@
+name: C/C++ CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: install xmake
+      uses: xmake-io/github-action-setup-xmake@v1.0.1
+    - name: install LCUI
+      run: |
+        wget https://github.com/lc-soft/LCUI/archive/develop.zip -O LCUI-develop.zip
+        unzip LCUI-develop.zip
+        rm LCUI-develop.zip
+        cd LCUI-develop
+        sh ./autogen.sh
+        ./configure
+        make
+        sudo make install
+    - name: make
+      run: |
+        xmake config -m coverage
+        xmake -v
+    - name: test
+      run: |
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+        xmake run test
