@@ -57,3 +57,4 @@ build/**/objs
 lcpkg
 .xmake
 test/test.*
+node_modules
