@@ -20,11 +20,6 @@ target("test")
     if is_plat("linux") and is_mode("coverage") then
         add_cflags("-ftest-coverage", "-fprofile-arcs", {force = true})
         add_links("gcov")
-        after_run(function (target)
-            os.run("lcov --test-name test --output-file test/test.info --directory build --capture")
-            os.run("genhtml -o test/test.report test/test.info")
-            os.run("xdg-open test/test.report/index.html")
-        end)
     end
     set_kind("binary")
     add_files("test/test.c")
