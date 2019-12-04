@@ -1,7 +1,6 @@
 dist: bionic
 language: c
 compiler:
-  - clang
   - gcc
 
 before_install:
@@ -30,5 +29,4 @@ script:
   - xmake run test
 
 after_success:
-  - if [[ $CC == clang ]] ; then coveralls --gcov-options '\-lp' --gcov 'llvm-cov gcov' ; fi
-  - if [[ $CC == gcc ]] ; then coveralls --gcov-options '\-lp' ; fi
+  - coveralls --gcov-options '\-lp'
