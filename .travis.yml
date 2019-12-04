@@ -1,0 +1,32 @@
+dist: bionic
+language: c
+compiler:
+  - gcc
+
+before_install:
+  - sudo apt-get install valgrind lcov -qq
+  - pip install --user cpp-coveralls
+  - bash <(curl -fsSL https://raw.githubusercontent.com/tboox/xmake/master/scripts/get.sh)
+  - source ~/.xmake/profile
+  - wget https://github.com/lc-soft/LCUI/archive/develop.zip -O LCUI-develop.zip
+  - unzip LCUI-develop.zip
+  - rm LCUI-develop.zip
+  - cd LCUI-develop
+  - sh ./autogen.sh
+  - ./configure
+  - make
+  - sudo make install
+  - cd ..
+  - npm install
+
+before_script:
+  - ./node_modules/.bin/commitlint-travis
+
+script:
+  - xmake config -m coverage
+  - xmake
+  - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+  - xmake run test
+
+after_success:
+  - coveralls --gcov-options '\-lp'
