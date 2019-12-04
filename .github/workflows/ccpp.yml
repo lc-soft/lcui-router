@@ -9,8 +9,6 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: install cpp-coveralls
-      run: pip install --user cpp-coveralls
     - name: install xmake
       uses: xmake-io/github-action-setup-xmake@v1.0.1
     - name: install LCUI
@@ -31,5 +29,3 @@ jobs:
       run: |
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
         xmake run test
-    - name: upload coverage report
-      run: coveralls --gcov-options '\-lp'
