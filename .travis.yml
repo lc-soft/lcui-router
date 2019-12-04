@@ -20,7 +20,7 @@ before_install:
   - npm install
 
 before_script:
-  - commitlint-travis
+  - ./node_modules/.bin/commitlint-travis
 
 script:
   - xmake config -m coverage
