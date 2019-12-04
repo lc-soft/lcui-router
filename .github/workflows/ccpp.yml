@@ -20,7 +20,7 @@ jobs:
         sh ./autogen.sh
         ./configure
         make
-        make install
+        sudo make install
     - name: make
       run: |
         xmake config -m coverage
