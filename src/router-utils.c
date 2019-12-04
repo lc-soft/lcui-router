@@ -53,7 +53,7 @@ char *router_path_fill_params(const char *path, router_string_dict_t *params)
 	const char *value;
 	char key[256];
 	char *full_path;
-	size_t key_len;
+	size_t key_len = 0;
 	size_t value_len;
 	size_t full_path_len;
 	size_t i = 0;
