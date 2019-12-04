@@ -9,6 +9,21 @@
 #include "../src/router-string-dict.c"
 #include "../src/router-utils.c"
 
+#ifdef _WIN32
+#define COLOR_NONE
+#define COLOR_RED
+#define COLOR_GREEN
+#define COLOR_GRAY
+#else
+#define COLOR_NONE "\e[0m"
+#define COLOR_RED "\e[0;31m"
+#define COLOR_GREEN "\e[0;32m"
+#define COLOR_GRAY "\e[1;30m"
+#endif
+#define GRAY(TEXT) COLOR_GRAY TEXT COLOR_NONE
+#define RED(TEXT) COLOR_RED TEXT COLOR_NONE
+#define GREEN(TEXT) COLOR_GREEN TEXT COLOR_NONE
+
 static size_t tests_passed = 0;
 static size_t tests_total = 0;
 
@@ -20,15 +35,15 @@ void it_i(const char *name, int actual, int expected)
 {
 	tests_total++;
 	if (actual == expected) {
-		Logger_Info("    √ %s == %d\n", name, expected);
+		Logger_Info(GREEN("  √ ") GRAY("%s == %d\n"), name, expected);
 		tests_passed++;
 		return;
 	}
-	Logger_Error("    × %s == %d\n", name, expected);
-	Logger_Error("        AssertionError: %d == %d\n", actual, expected);
-	Logger_Info("        + expected - actual\n\n");
-	Logger_Info("        - %d\n", actual);
-	Logger_Info("        + %d\n\n", expected);
+	Logger_Error(RED("  × %s == %d\n"), name, expected);
+	Logger_Error(RED("    AssertionError: %d == %d\n"), actual, expected);
+	Logger_Info(GREEN("    + expected ") RED("- actual\n\n"));
+	Logger_Info(RED("    - %d\n"), actual);
+	Logger_Info(RED("    + %d\n\n"), expected);
 }
 
 void it_b(const char *name, router_boolean_t actual, router_boolean_t expected)
@@ -38,16 +53,16 @@ void it_b(const char *name, router_boolean_t actual, router_boolean_t expected)
 
 	tests_total++;
 	if (actual == expected) {
-		Logger_Info("    √ %s\n", name);
+		Logger_Info(GREEN("  √ ") GRAY("%s\n"), name);
 		tests_passed++;
 		return;
 	}
-	Logger_Error("    × %s\n", name);
-	Logger_Error("        AssertionError: %s == %s\n", actual_str,
+	Logger_Error(RED("  × %s\n"), name);
+	Logger_Error(RED("    AssertionError: %s == %s\n"), actual_str,
 		     expected_str);
-	Logger_Info("        + expected - actual\n\n");
-	Logger_Info("        - %s\n", actual_str);
-	Logger_Info("        + %s\n\n", expected_str);
+	Logger_Info(GREEN("    + expected ") RED("- actual\n\n"));
+	Logger_Info(RED("    - %s\n"), actual_str);
+	Logger_Info(GREEN("    + %s\n\n"), expected_str);
 }
 
 void it_s(const char *name, const char *actual, const char *expected)
@@ -55,16 +70,16 @@ void it_s(const char *name, const char *actual, const char *expected)
 	tests_total++;
 	if ((actual && expected && strcmp(actual, expected) == 0) ||
 	    actual == expected) {
-		Logger_Info("    √ %s == '%s'\n", name, expected);
+		Logger_Info(GREEN("  √ ") GRAY("%s == '%s'\n"), name, expected);
 		tests_passed++;
 		return;
 	}
-	Logger_Error("    × %s == '%s'\n", name, expected);
-	Logger_Error("        AssertionError: '%s' == '%s'\n", actual,
+	Logger_Error(RED("   × %s == '%s'\n"), name, expected);
+	Logger_Error(RED("    AssertionError: '%s' == '%s'\n"), actual,
 		     expected);
-	Logger_Info("        + expected - actual\n\n");
-	Logger_Info("        - %s\n", actual);
-	Logger_Info("        + %s\n\n", expected);
+	Logger_Info(GREEN("    + expected ") RED("- actual\n\n"));
+	Logger_Info(RED("    - %s\n"), actual);
+	Logger_Info(GREEN("    + %s\n\n"), expected);
 }
 
 void test_router_location(void)
