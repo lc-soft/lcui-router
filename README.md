@@ -1,5 +1,8 @@
 # lcui-router
 
+[![Build Status](https://travis-ci.org/lc-soft/lcui-router.svg?branch=master)](https://travis-ci.org/lc-soft/lcui-router)
+[![Coverage Status](https://coveralls.io/repos/github/lc-soft/lcui-router/badge.svg?branch=master)](https://coveralls.io/github/lc-soft/lcui-router?branch=master)
+
 A router for control view switching and status in the [LCUI](https://github.com/lc-soft/LCUI) applications, it inspired by the [Vue Router](https://github.com/vuejs/vue-router/blob/dev/dist/vue-router.esm.js).
 
 ## Installation
