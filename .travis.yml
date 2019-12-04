@@ -17,6 +17,7 @@ before_install:
   - ./configure
   - make
   - sudo make install
+  - cd ..
   - npm install
 
 before_script:
