@@ -1,6 +1,6 @@
 add_rules("mode.debug", "mode.release", "mode.coverage")
 add_linkdirs("/usr/local/lib")
-set_warnings("all", "error")
+set_warnings("all")
 
 lcpkg_dir = "./lcpkg/installed/$(arch)-$(os)"
 lcpkg_incdir = lcpkg_dir.."/include"
