@@ -9,9 +9,11 @@ jobs:
     
     steps:
     - uses: actions/checkout@v1
-    - name: setup xmake
+    - name: install cpp-coveralls
+      run: pip install --user cpp-coveralls
+    - name: install xmake
       uses: xmake-io/github-action-setup-xmake@v1.0.1
-    - name: setup LCUI
+    - name: install LCUI
       run: |
         wget https://github.com/lc-soft/LCUI/archive/develop.zip -O LCUI-develop.zip
         unzip LCUI-develop.zip
