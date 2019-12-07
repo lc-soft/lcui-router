@@ -25,9 +25,18 @@ void router_string_dict_destroy(router_string_dict_t *dict)
 	Dict_Release(dict);
 }
 
+void router_string_dict_delete(router_string_dict_t *dict, const char *key)
+{
+	Dict_Delete(dict, key);
+}
+
 int router_string_dict_set(router_string_dict_t *dict, const char *key,
 			   const char *value)
 {
+	if (Dict_Add(dict, (void *)key, (void *)value) == 0) {
+		return 0;
+	}
+	Dict_Delete(dict, (void *)key);
 	return Dict_Add(dict, (void *)key, (void *)value);
 }
 
@@ -37,7 +46,7 @@ const char *router_string_dict_get(router_string_dict_t *dict, const char *key)
 }
 
 size_t router_string_dict_extend(router_string_dict_t *target,
-			       router_string_dict_t *other)
+				 router_string_dict_t *other)
 {
 	size_t count = 0;
 	DictEntry *entry;
@@ -64,4 +73,32 @@ router_string_dict_t *router_string_dict_duplicate(router_string_dict_t *target)
 		router_string_dict_extend(dict, target);
 	}
 	return dict;
+}
+
+router_boolean_t router_string_dict_includes(router_string_dict_t *a,
+					     router_string_dict_t *b)
+{
+	DictEntry *entry;
+	DictIterator *iter;
+	const char *value;
+
+	iter = Dict_GetIterator(b);
+	while ((entry = Dict_Next(iter))) {
+		value = Dict_FetchValue(a, entry->key);
+		if (!value || strcmp(value, DictEntry_GetVal(entry)) != 0) {
+			Dict_ReleaseIterator(iter);
+			return FALSE;
+		}
+	}
+	Dict_ReleaseIterator(iter);
+	return TRUE;
+}
+
+router_boolean_t router_string_dict_equal(router_string_dict_t *a,
+					  router_string_dict_t *b)
+{
+	if (Dict_Size(a) != Dict_Size(b)) {
+		return FALSE;
+	}
+	return router_string_dict_includes(a, b);
 }

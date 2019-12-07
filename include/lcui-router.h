@@ -21,14 +21,17 @@ typedef struct router_resolved_t router_resolved_t;
 typedef void (*router_callback_t)(void *, const router_route_t *,
 				  const router_route_t *);
 
-// router_string_dict
+// router string dict
 
 router_string_dict_t *router_string_dict_create(void);
 
 void router_string_dict_destroy(router_string_dict_t *dict);
 
+void router_string_dict_delete(router_string_dict_t *dict, const char *key);
+
 int router_string_dict_set(router_string_dict_t *dict, const char *key,
 			   const char *value);
+
 const char *router_string_dict_get(router_string_dict_t *dict, const char *key);
 
 size_t router_string_dict_extend(router_string_dict_t *target,
@@ -37,7 +40,13 @@ size_t router_string_dict_extend(router_string_dict_t *target,
 router_string_dict_t *router_string_dict_duplicate(
     router_string_dict_t *target);
 
-// router_utils
+router_boolean_t router_string_dict_includes(router_string_dict_t *a,
+					     router_string_dict_t *b);
+
+router_boolean_t router_string_dict_equal(router_string_dict_t *a,
+					  router_string_dict_t *b);
+
+// router utils
 
 char *router_path_fill_params(const char *path, router_string_dict_t *params);
 
@@ -51,13 +60,19 @@ char *router_path_resolve(const char *relative, const char *base,
 
 router_string_dict_t *router_parse_query(const char *query_str);
 
-// router_config
+int router_string_compare(const char *a, const char *b);
+
+int router_path_compare(const char *a, const char *b);
+
+router_boolean_t router_path_starts_with(const char *path, const char *subpath);
+
+// router config
 
 router_config_t *router_config_create(void);
 
 void router_config_destroy(router_config_t *config);
 
-// router_location
+// router location
 
 router_location_t *router_location_create(const char *name, const char *path);
 
@@ -79,7 +94,7 @@ const char *router_location_get_query(const router_location_t *location,
 
 char *router_location_stringify(const router_location_t *location);
 
-// router_route_record
+// router route record
 
 router_route_record_t *router_route_record_create(void);
 
@@ -91,7 +106,7 @@ void router_route_record_set_path(router_route_record_t *record,
 const char *router_route_record_get_component(
     const router_route_record_t *record, const char *key);
 
-// router_route
+// router route
 
 router_route_t *router_route_create(const router_route_record_t *record,
 				    const router_location_t *location);
@@ -107,7 +122,7 @@ const char *router_route_get_param(const router_route_t *route,
 const char *router_route_get_query(const router_route_t *route,
 				   const char *key);
 
-// router_matcher
+// router matcher
 
 router_matcher_t *router_matcher_create(void);
 
@@ -121,7 +136,7 @@ router_route_record_t *router_matcher_add_route_record(
     router_matcher_t *matcher, const router_config_t *config,
     const router_route_record_t *parent);
 
-// router_history
+// router history
 
 router_history_t *router_history_create(void);
 

@@ -49,7 +49,7 @@ void it_b(const char *name, router_boolean_t actual, router_boolean_t expected)
 	const char *expected_str = expected ? "true" : "false";
 
 	tests_total++;
-	if (actual == expected) {
+	if (!actual == !expected) {
 		Logger_Info(GREEN("  √ ") "%s\n", name);
 		tests_passed++;
 		return;
@@ -203,24 +203,16 @@ void test_router_matcher(void)
 	record = router_route_get_matched_record(route, 0);
 	it_b("match('/users/root/posts').route.matched[0] != null", !!record,
 	     TRUE);
-	if (record) {
-		str = router_route_record_get_component(record, NULL);
-	} else {
-		str = NULL;
-	}
 	it_s("match('/users/root/posts').route.matched[0].components.default",
-	     str, "user-show");
+	     record ? router_route_record_get_component(record, NULL) : NULL,
+	     "user-show");
 	route = router_resolved_get_route(resolved);
 	record = router_route_get_matched_record(route, 1);
 	it_b("match('/users/root/posts').route.matched[1] != null", !!record,
 	     TRUE);
-	if (record) {
-		str = router_route_record_get_component(record, NULL);
-	} else {
-		str = NULL;
-	}
 	it_s("match('/users/root/posts').route.matched[1].components.default",
-	     str, "user-posts");
+	     record ? router_route_record_get_component(record, NULL) : NULL,
+	     "user-posts");
 	router_resolved_destroy(resolved);
 
 	location = router_location_create(NULL, "/other/path/to/file");
@@ -230,11 +222,6 @@ void test_router_matcher(void)
 	record = router_route_get_matched_record(route, 0);
 	it_b("match('/other/path/to/file').route.matched[0] != null", !!record,
 	     TRUE);
-	if (record) {
-		str = router_route_record_get_component(record, NULL);
-	} else {
-		str = NULL;
-	}
 	it_s("match('/other/path/to/file').route.matched[0].components.default",
 	     record ? router_route_record_get_component(record, NULL) : NULL,
 	     "not-found");
@@ -262,6 +249,8 @@ void test_router_matcher(void)
 void test_router_utils(void)
 {
 	char *str;
+	router_string_dict_t *a;
+	router_string_dict_t *b;
 
 	str = router_path_resolve("", NULL, TRUE);
 	it_s("path.resolve('', null, true) == '/'", str, "/");
@@ -294,6 +283,52 @@ void test_router_utils(void)
 	it_s("path.resolve('/profile', 'base/profile', false)", str,
 	     "/profile");
 	free(str);
+
+	it_b("path.compare('/a/b', '/a/b/')",
+	     router_path_compare("/a/b", "/a/b/"), TRUE);
+	it_b("path.compare('/a/b/', '/a/b/')",
+	     router_path_compare("/a/b/", "/a/b"), TRUE);
+	it_b("path.compare('', '')", router_path_compare("", "") == 0, TRUE);
+	it_b("path.compare('a', '')", router_path_compare("a", "") != 0, TRUE);
+	it_b("path.compare('', 'b')", router_path_compare("", "b") != 0, TRUE);
+	it_b("path.compare('a', 'b')", router_path_compare("a", "b") != 0,
+	     TRUE);
+
+	it_b("path.startsWith('/profile/events', '/profile/event')",
+	     router_path_starts_with("/profile/events", "/profile/event"),
+	     FALSE);
+	it_b("path.startsWith('/profile/events', '/profile/')",
+	     router_path_starts_with("/profile/events", "/profile/"), TRUE);
+	it_b("path.startsWith('/profile', '/profile/')",
+	     router_path_starts_with("/profile", "/profile/"), TRUE);
+	it_b("path.startsWith('/profile/', '/profile')",
+	     router_path_starts_with("/profile/", "/profile"), TRUE);
+
+	a = router_string_dict_create();
+	b = router_string_dict_create();
+	router_string_dict_set(a, "id", "404");
+	router_string_dict_set(b, "id", "404");
+	router_string_dict_set(a, "name", "git");
+	router_string_dict_set(b, "name", "git");
+
+	it_b("isObjectEqual({ id: '404', name: 'git' }, { id: '404', name: "
+	     "'git' })",
+	     router_string_dict_equal(a, b), TRUE);
+
+	router_string_dict_set(b, "id", "200");
+	it_b("isObjectEqual({ id: '404', name: 'git' }, { id: '200', name: "
+	     "'git' })",
+	     router_string_dict_equal(a, b), FALSE);
+
+	router_string_dict_delete(b, "id");
+	it_b("isObjectIncludes({ id: '404', name: 'git' }, { name: 'git' })",
+	     router_string_dict_includes(a, b), TRUE);
+	router_string_dict_delete(a, "name");
+	it_b("isObjectIncludes({ id: '404' }, { id: '200' })",
+	     router_string_dict_includes(a, b), FALSE);
+
+	router_string_dict_destroy(a);
+	router_string_dict_destroy(b);
 }
 
 int main(void)

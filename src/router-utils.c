@@ -177,3 +177,110 @@ router_string_dict_t *router_parse_query(const char *query_str)
 	free(pairs);
 	return query;
 }
+
+int router_string_compare(const char *a, const char *b)
+{
+	if (a == b) {
+		return 0;
+	}
+	if (!a || !b) {
+		return -1;
+	}
+	return strcmp(a, b);
+}
+
+int router_path_compare(const char *a, const char *b)
+{
+	const char *p = a;
+	const char *q = b;
+
+	if (p == q) {
+		return 0;
+	}
+	if (!p || !q) {
+		return -1;
+	}
+	while (*p && *q) {
+		if (*p != *q) {
+			break;
+		}
+		p++;
+		q++;
+	}
+	// "path/to/a/" == "path/to/a"
+	if (!*p && p - a > 0 && (*p - 1) == '/') {
+		p--;
+	}
+	if (!*q && q - b > 0 && (*q - 1) == '/') {
+		q--;
+	}
+	return *p - *q;
+}
+
+router_boolean_t router_path_starts_with(const char *path, const char *subpath)
+{
+	const char *p = path;
+	const char *q = subpath;
+
+	while (*p && *q) {
+		if (*p != *q) {
+			return FALSE;
+		}
+		p++;
+		q++;
+	}
+	if (*q) {
+		// path: "path/to/a"
+		// subpath: "path/to/a/"
+		if (*q == '/' && !*(q + 1)) {
+			q++;
+		} else {
+			return FALSE;
+		}
+	}
+	if (q - subpath > 0) {
+		// path: "path/to/a/b/c"
+		// subpath: "path/to/"
+		if (*(q - 1) == '/') {
+			return TRUE;
+		}
+		// path: "path/to/a/b/c"
+		// subpath: "path/to"
+		if (*p == '/') {
+			return TRUE;
+		}
+	}
+	return *p == *q;
+}
+
+// https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/src/util/route.js#L73
+
+router_boolean_t router_is_same_route(router_route_t *a, router_route_t *b)
+{
+	if (!b) {
+		return FALSE;
+	}
+	if (a->path && b->path) {
+		return router_path_compare(a->path, b->path) == 0 &&
+		       router_string_compare(a->hash, b->hash) &&
+		       router_string_dict_equal(a->query, b->query);
+	}
+	if (a->name && b->name) {
+		return strcmp(a->name, b->name) == 0 &&
+		       router_string_compare(a->hash, b->hash) &&
+		       router_string_dict_equal(a->query, b->query) &&
+		       router_string_dict_equal(a->params, b->params);
+	}
+	return FALSE;
+}
+
+// https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/src/util/route.js#L115
+
+router_boolean_t router_is_included_route(router_route_t *current,
+					  router_route_t *target)
+{
+	return router_path_starts_with(current->path, target->path) &&
+	       (!target->hash ||
+		current->hash && strcmp(current->hash, target->hash) == 0) &&
+	       router_string_dict_includes(current->query, target->query);
+}
