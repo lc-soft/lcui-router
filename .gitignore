@@ -58,3 +58,5 @@ lcpkg
 .xmake
 test/test.*
 node_modules
+*.gcno
+build/xmake

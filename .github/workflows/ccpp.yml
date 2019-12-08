@@ -23,9 +23,9 @@ jobs:
         sudo make install
     - name: make
       run: |
-        xmake config -m coverage
+        xmake config -m coverage -o build/xmake
         xmake -v
     - name: test
       run: |
         export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
-        xmake run test
+        xmake run test --memcheck

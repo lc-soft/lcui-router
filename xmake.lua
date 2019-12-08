@@ -20,6 +20,17 @@ target("test")
     if is_plat("linux") and is_mode("coverage") then
         add_cflags("-ftest-coverage", "-fprofile-arcs", {force = true})
         add_links("gcov")
+        on_run(function (target)
+            import("core.base.option")
+            local argv = {}
+            local options = {{nil, "memcheck",  "k",  nil, "enable memory check."}}
+            local args = option.raw_parse(option.get("arguments") or {}, options)
+            if args.memcheck then
+                table.insert(argv, "--leak-check=full")
+            end
+            table.insert(argv, target:targetfile())
+            os.execv("valgrind", argv)
+        end)
     end
     set_kind("binary")
     add_files("test/test.c")
