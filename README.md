@@ -35,21 +35,21 @@ We recommend that you use [lcui-cli](https://github.com/lc-ui/lcui-cli) tool to 
     ```xml
     <?xml version="1.0" encoding="UTF-8" ?>
     <lcui-app>
-    <resource type="text/css" src="assets/stylesheets/app.css"/>
-    <ui>
-      <w>
-        <textview>Hello App!</textview>
+      <resource type="text/css" src="assets/stylesheets/app.css"/>
+      <ui>
         <w>
-          <!-- use router-link component for navigation. -->
-          <!-- specify the link by passing the `to` prop. -->
-          <router-link to="/foo">Go to Foo</router-link>
-          <router-link to="/bar">Go to Bar</router-link>
+          <textview>Hello App!</textview>
+          <w>
+            <!-- use router-link component for navigation. -->
+            <!-- specify the link by passing the `to` prop. -->
+            <router-link to="/foo">Go to Foo</router-link>
+            <router-link to="/bar">Go to Bar</router-link>
+          </w>
+          <!-- route outlet -->
+          <!-- component matched by the route will render here -->
+          <router-view />
         </w>
-        <!-- route outlet -->
-        <!-- component matched by the route will render here -->
-        <router-view />
-      </w>
-    </ui>
+      </ui>
     </lcui-app>
     ```
 
