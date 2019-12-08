@@ -35,6 +35,8 @@ router_watcher_t *router_history_watch(router_history_t *history,
 	watcher->node.data = watcher;
 	watcher->node.next = NULL;
 	watcher->node.prev = NULL;
+	watcher->data = data;
+	watcher->callback = callback;
 	LinkedList_AppendNode(&history->watchers, &watcher->node);
 	return watcher;
 }

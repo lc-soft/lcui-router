@@ -97,7 +97,9 @@ router_route_t *router_resolved_get_route(router_resolved_t *resolved)
 void router_resolved_destroy(router_resolved_t *resolved)
 {
 	router_location_destroy(resolved->location);
-	router_route_destroy(resolved->route);
+	if (resolved->route) {
+		router_route_destroy(resolved->route);
+	}
 	free(resolved);
 }
 

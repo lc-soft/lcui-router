@@ -1,30 +1,26 @@
 ﻿#include "router.h"
-#include <LCUI/gui/widget.h>
+#include "lcui-router-view.h"
 
-typedef struct router_view_t router_view_t;
-
-struct router_view_t {
+typedef struct RouterViewRec_ {
 	size_t index;
 	router_t *router;
 	router_watcher_t *watcher;
 	router_boolean_t keep_alive;
 	Dict *cache;
-	LCUI_Widget current_widget;
-};
+	LCUI_Widget matched_widget;
+} RouterViewRec, *RouterView;
 
-static struct {
-	LCUI_WidgetPrototype proto;
-} self;
+static LCUI_WidgetPrototype router_view_proto;
 
-static LCUI_Widget router_view_get_matched(LCUI_Widget w, const router_route_t *route)
+static LCUI_Widget RouterView_GetMatched(LCUI_Widget w, const router_route_t *route)
 {
 	const char *name;
 	const char *component_name;
 	const router_route_record_t *record;
-	router_view_t *view;
+	RouterView view;
 	LCUI_Widget component;
 
-	view = Widget_GetData(w, self.proto);
+	view = Widget_GetData(w, router_view_proto);
 	name = Widget_GetAttribute(w, "name");
 	record = router_route_get_matched_record(route, view->index);
 	if (!record) {
@@ -47,30 +43,30 @@ static LCUI_Widget router_view_get_matched(LCUI_Widget w, const router_route_t *
 	return component;
 }
 
-static void router_view_on_route_update(void *w, const router_route_t *to,
+static void RouterView_OnRouteUpdate(void *w, const router_route_t *to,
 					const router_route_t *from)
 {
-	router_view_t *view;
+	RouterView view;
 
-	view = Widget_GetData(w, self.proto);
-	if (view->current_widget && view->keep_alive) {
-		Widget_Unlink(view->current_widget);
+	view = Widget_GetData(w, router_view_proto);
+	if (view->matched_widget && view->keep_alive) {
+		Widget_Unlink(view->matched_widget);
 	}
-	view->current_widget = router_view_get_matched(w, to);
+	view->matched_widget = RouterView_GetMatched(w, to);
 	Widget_Empty(w);
-	Widget_Append(w, view->current_widget);
+	Widget_Append(w, view->matched_widget);
 }
 
-static void router_view_on_ready(LCUI_Widget w, LCUI_WidgetEvent e, void *arg)
+static void RouterView_OnReady(LCUI_Widget w, LCUI_WidgetEvent e, void *arg)
 {
 	size_t index;
 	router_t *router;
-	router_view_t *view;
-	const router_route_t *route;
 	const char *name;
+	const router_route_t *route;
 	LCUI_Widget parent;
+	RouterView view;
 
-	view = Widget_GetData(w, self.proto);
+	view = Widget_GetData(w, router_view_proto);
 	for (index = 0, parent = w->parent; parent; parent = parent->parent) {
 		if (Widget_CheckType(parent, "router-view")) {
 			++index;
@@ -87,40 +83,53 @@ static void router_view_on_ready(LCUI_Widget w, LCUI_WidgetEvent e, void *arg)
 	}
 	router = router_get_by_name(name);
 	route = router_get_current_route(router);
-	view->watcher = router_watch(router, router_view_on_route_update, w);
+	view->watcher = router_watch(router, RouterView_OnRouteUpdate, w);
 	view->router = router;
 	view->index = index;
-	view->current_widget = router_view_get_matched(w, route);
-	Widget_Append(w, view->current_widget);
-	Widget_UnbindEvent(w, "ready", router_view_on_ready);
+	if (route) {
+		view->matched_widget = RouterView_GetMatched(w, route);
+		Widget_Append(w, view->matched_widget);
+	} else {
+		view->matched_widget = NULL;
+	}
+	Widget_UnbindEvent(w, "ready", RouterView_OnReady);
 }
 
-static void router_view_on_init(LCUI_Widget w)
+LCUI_Widget RouterView_GetMatchedWidget(LCUI_Widget w)
 {
-	router_view_t *view;
+	RouterView view;
 
-	view = Widget_AddData(w, self.proto, sizeof(router_view_t));
+	view = Widget_GetData(w, router_view_proto);
+	return view->matched_widget;
+}
+
+static void RouterView_OnInit(LCUI_Widget w)
+{
+	RouterView view;
+
+	view = Widget_AddData(w, router_view_proto, sizeof(RouterViewRec));
 	view->router = NULL;
 	view->watcher = NULL;
 	view->cache = Dict_Create(&DictType_StringCopyKey, NULL);;
 	view->keep_alive = FALSE;
-	Widget_BindEvent(w, "ready", router_view_on_ready, NULL, NULL);
+	Widget_BindEvent(w, "ready", RouterView_OnReady, NULL, NULL);
 }
 
-static void router_view_on_destroy(LCUI_Widget w)
+static void RouterView_OnDestroy(LCUI_Widget w)
 {
-	router_view_t *view;
+	RouterView view;
 
-	view = Widget_GetData(w, self.proto);
+	view = Widget_GetData(w, router_view_proto);
 	if (view->router) {
 		router_unwatch(view->router, view->watcher);
-		view->watcher = NULL;
 	}
+	view->watcher = NULL;
+	view->router = NULL;
 }
 
-void router_view_install(void)
+void UI_InitRouterView(void)
 {
-	self.proto = LCUIWidget_NewPrototype("router-view", NULL);
-	self.proto->init = router_view_on_init;
-	self.proto->destroy = router_view_on_destroy;
+	router_view_proto = LCUIWidget_NewPrototype("router-view", NULL);
+	router_view_proto->init = RouterView_OnInit;
+	router_view_proto->destroy = RouterView_OnDestroy;
 }

@@ -255,19 +255,20 @@ router_boolean_t router_path_starts_with(const char *path, const char *subpath)
 
 // https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/src/util/route.js#L73
 
-router_boolean_t router_is_same_route(router_route_t *a, router_route_t *b)
+router_boolean_t router_is_same_route(const router_route_t *a,
+				      const router_route_t *b)
 {
 	if (!b) {
 		return FALSE;
 	}
 	if (a->path && b->path) {
 		return router_path_compare(a->path, b->path) == 0 &&
-		       router_string_compare(a->hash, b->hash) &&
+		       router_string_compare(a->hash, b->hash) == 0 &&
 		       router_string_dict_equal(a->query, b->query);
 	}
 	if (a->name && b->name) {
 		return strcmp(a->name, b->name) == 0 &&
-		       router_string_compare(a->hash, b->hash) &&
+		       router_string_compare(a->hash, b->hash) == 0 &&
 		       router_string_dict_equal(a->query, b->query) &&
 		       router_string_dict_equal(a->params, b->params);
 	}
@@ -276,8 +277,8 @@ router_boolean_t router_is_same_route(router_route_t *a, router_route_t *b)
 
 // https://github.com/vuejs/vue-router/blob/65de048ee9f0ebf899ae99c82b71ad397727e55d/src/util/route.js#L115
 
-router_boolean_t router_is_included_route(router_route_t *current,
-					  router_route_t *target)
+router_boolean_t router_is_included_route(const router_route_t *current,
+					  const router_route_t *target)
 {
 	return router_path_starts_with(current->path, target->path) &&
 	       (!target->hash ||

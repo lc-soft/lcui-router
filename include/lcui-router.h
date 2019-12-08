@@ -66,7 +66,13 @@ int router_path_compare(const char *a, const char *b);
 
 router_boolean_t router_path_starts_with(const char *path, const char *subpath);
 
-// router config
+router_boolean_t router_is_same_route(const router_route_t *a,
+				      const router_route_t *b);
+
+router_boolean_t router_is_included_route(const router_route_t *current,
+					  const router_route_t *target);
+
+    // router config
 
 router_config_t *router_config_create(void);
 
