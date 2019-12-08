@@ -5,6 +5,16 @@
 
 A router for control view switching and status in the [LCUI](https://github.com/lc-soft/LCUI) applications, it inspired by the [Vue Router](https://github.com/vuejs/vue-router/blob/dev/dist/vue-router.esm.js).
 
+## Introduction
+
+LCUI Router is the official router for [LCUI](https://github.com/lc-soft/LCUI). It make building multiple views applications with LCUI a breeze. Features include:
+
+- Nested route/view mapping
+- Modular, component-based router configuration
+- Route params, query, wildcards
+- Fine-grained navigation control
+- Links with automatic active CSS classes
+
 ## Installation
 
 **Windows:**
@@ -19,76 +29,71 @@ lcpkg install github.com/lc-soft/lcui-router
 
 Download source code and copy it to your project directory.
 
-## Usage
+## Getting Started
 
-We recommend that you use [lcui-cli](https://github.com/lc-ui/lcui-cli) tool to manage the configuration and source code for the router, just follow these steps.
+> **Note:** We will using [lcui-cli](https://github.com/lc-ui/lcui-cli) tool to manage the configuration and source code for the router.
 
-1. Create an LCUI application project:
+Create an LCUI application project:
 
-    ``` bash
-    lcui create myapp
-    cd myapp
-    ```
+``` bash
+lcui create myapp
+cd myapp
+```
 
-1. Overwrite the following code to the file `app/assets/views/app.xml`:
+Overwrite the following code to the file `app/assets/views/app.xml`:
 
-    ```xml
-    <?xml version="1.0" encoding="UTF-8" ?>
-    <lcui-app>
-      <resource type="text/css" src="assets/stylesheets/app.css"/>
-      <ui>
-        <w>
-          <textview>Hello App!</textview>
-          <w>
-            <!-- use router-link component for navigation. -->
-            <!-- specify the link by passing the `to` prop. -->
-            <router-link to="/foo">Go to Foo</router-link>
-            <router-link to="/bar">Go to Bar</router-link>
-          </w>
-          <!-- route outlet -->
-          <!-- component matched by the route will render here -->
-          <router-view />
-        </w>
-      </ui>
-    </lcui-app>
-    ```
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<lcui-app>
+  <resource type="text/css" src="assets/stylesheets/app.css"/>
+  <ui>
+    <w>
+      <textview>Hello App!</textview>
+      <w>
+        <!-- use router-link component for navigation. -->
+        <!-- specify the link by passing the `to` prop. -->
+        <router-link to="/foo">Go to Foo</router-link>
+        <router-link to="/bar">Go to Bar</router-link>
+      </w>
+      <!-- route outlet -->
+      <!-- component matched by the route will render here -->
+      <router-view />
+    </w>
+  </ui>
+</lcui-app>
+```
 
-1. Generate widget source files:
+Generate two widgets:
 
-    ```bash
-    lcui generate widget foo
-    lcui generate widget bar
-    ```
+```bash
+lcui generate widget foo
+lcui generate widget bar
+```
 
-1. Save following code as file `config/router.js`:
+Save following code as file `config/router.js`:
 
-    ```js
-    // config/router.js
-    module.exports = [
-      { path: '/foo', component: 'foo' },
-      { path: '/bar', component: 'bar' }
-    ]
-    ```
+```js
+module.exports = [
+  { path: '/foo', component: 'foo' },
+  { path: '/bar', component: 'bar' }
+]
+```
 
-1. Compile config file for router:
+Compile config file for router:
 
-    ```bash
-    lcui compile router
-    ```
+```bash
+lcui compile router
+```
 
-    You will see the following output:
+Run app:
 
-    ```text
-    output src/router.c
-    output src/router.h
-    update src/app.c
-    ```
+``` bash
+lcpkg run start
+```
 
-1. Run app:
+## Documentation
 
-    ``` bash
-    lcpkg run start
-    ```
+LCUI Router is referenced from Vue Router, so you can read the [Vue Router documentation]((https://router.vuejs.org/)) to learn about the basic usage of LCUI Router.
 
 ## License
 
