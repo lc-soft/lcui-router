@@ -32,4 +32,4 @@ script:
   - xmake run test
 
 after_success:
-  - coveralls --gcov-options '\-lp'
+  - coveralls --exclude demo --exclude include --exclude test --gcov-options '\-lp'
