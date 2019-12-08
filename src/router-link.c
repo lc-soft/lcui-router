@@ -133,10 +133,12 @@ static void RouterLink_OnDestroy(LCUI_Widget w)
 	link = Widget_GetData(w, router_link_proto);
 	if (link->router) {
 		router_unwatch(link->router, link->watcher);
-		link->watcher = NULL;
 	}
+	router_location_destroy(link->to);
 	router_mem_free(link->active_class);
 	router_mem_free(link->exact_active_class);
+	link->watcher = NULL;
+	link->to = NULL;
 }
 
 void RouterLink_SetLocation(LCUI_Widget w, router_location_t *location)

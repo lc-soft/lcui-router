@@ -123,6 +123,8 @@ static void RouterView_OnDestroy(LCUI_Widget w)
 	if (view->router) {
 		router_unwatch(view->router, view->watcher);
 	}
+	Dict_Release(view->cache);
+	view->cache = NULL;
 	view->watcher = NULL;
 	view->router = NULL;
 }
