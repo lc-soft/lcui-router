@@ -93,7 +93,7 @@ lcpkg run start
 
 ## Documentation
 
-LCUI Router is referenced from Vue Router, so you can read the [Vue Router documentation]((https://router.vuejs.org/)) to learn about the basic usage of LCUI Router.
+LCUI Router is referenced from Vue Router, so you can read the [Vue Router documentation](https://router.vuejs.org/) to learn about the basic usage of LCUI Router.
 
 ## License
 
