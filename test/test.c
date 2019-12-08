@@ -369,8 +369,8 @@ void test_router_components(void)
 	router_add_route_record(router, config, NULL);
 	router_config_destroy(config);
 
-	LCUI_Init();
 	Logger_SetLevel(LOGGER_LEVEL_ERROR);
+	LCUI_Init();
 	LCUIWidget_NewPrototype("foo", NULL);
 	LCUIWidget_NewPrototype("foobar", NULL);
 	LCUIWidget_NewPrototype("bar", NULL);

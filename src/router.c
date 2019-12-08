@@ -1,8 +1,6 @@
 ﻿#include "router.h"
 
-struct {
-	Dict *routers;
-} self;
+static Dict *routers = NULL;
 
 router_t *router_create(const char *name)
 {
@@ -17,16 +15,16 @@ router_t *router_create(const char *name)
 	router->link_exact_active_class = strdup("router-link-exact-active");
 	router->matcher = router_matcher_create();
 	router->history = router_history_create();
-	if (!self.routers) {
-		self.routers = Dict_Create(&DictType_StringKey, NULL);
+	if (!routers) {
+		routers = Dict_Create(&DictType_StringKey, NULL);
 	}
-	Dict_Add(self.routers, router->name, router);
+	Dict_Add(routers, router->name, router);
 	return router;
 }
 
 void router_destroy(router_t *router)
 {
-	Dict_Delete(self.routers, router->name);
+	Dict_Delete(routers, router->name);
 	router_mem_free(router->name);
 	router_mem_free(router->link_active_class);
 	router_mem_free(router->link_exact_active_class);
@@ -145,7 +143,12 @@ void router_forward(router_t *router)
 
 router_t *router_get_by_name(const char *name)
 {
-	router_t *router = Dict_FetchValue(self.routers, name);
+	router_t *router;
+
+	if (!routers) {
+		return NULL;
+	}
+	router = Dict_FetchValue(routers, name);
 	if (router) {
 		return router;
 	}
