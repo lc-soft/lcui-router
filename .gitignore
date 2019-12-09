@@ -52,6 +52,7 @@ Mkfile.old
 dkms.conf
 
 .vs
+bin
 build/.*
 build/**/objs
 lcpkg
