@@ -84,6 +84,8 @@ static void RouterLink_OnSetAttribute(LCUI_Widget w, const char *name,
 			free(link->active_class);
 		}
 		link->active_class = strdup(value);
+	} else {
+		router_link_proto->proto->setattr(w, name, value);
 	}
 }
 
@@ -124,6 +126,7 @@ static void RouterLink_OnInit(LCUI_Widget w)
 	link->watcher = NULL;
 	Widget_BindEvent(w, "ready", RouterLink_OnReady, NULL, NULL);
 	Widget_BindEvent(w, "click", RouterLink_OnClick, NULL, NULL);
+	router_link_proto->proto->init(w);
 }
 
 static void RouterLink_OnDestroy(LCUI_Widget w)
@@ -139,6 +142,7 @@ static void RouterLink_OnDestroy(LCUI_Widget w)
 	router_mem_free(link->exact_active_class);
 	link->watcher = NULL;
 	link->to = NULL;
+	router_link_proto->proto->destroy(w);
 }
 
 void RouterLink_SetLocation(LCUI_Widget w, router_location_t *location)
@@ -162,7 +166,7 @@ void RouterLink_SetExact(LCUI_Widget w, router_boolean_t exact)
 
 void UI_InitRouterLink(void)
 {
-	router_link_proto = LCUIWidget_NewPrototype("router-link", NULL);
+	router_link_proto = LCUIWidget_NewPrototype("router-link", "textview");
 	router_link_proto->init = RouterLink_OnInit;
 	router_link_proto->setattr = RouterLink_OnSetAttribute;
 	router_link_proto->destroy = RouterLink_OnDestroy;
