@@ -3,11 +3,9 @@
 [![Build Status](https://travis-ci.org/lc-soft/lcui-router.svg?branch=master)](https://travis-ci.org/lc-soft/lcui-router)
 [![Coverage Status](https://coveralls.io/repos/github/lc-soft/lcui-router/badge.svg?branch=master)](https://coveralls.io/github/lc-soft/lcui-router?branch=master)
 
-A router for control view switching and status in the [LCUI](https://github.com/lc-soft/LCUI) applications, it inspired by the [Vue Router](https://github.com/vuejs/vue-router/blob/dev/dist/vue-router.esm.js).
-
 ## Introduction
 
-LCUI Router is the official router for [LCUI](https://github.com/lc-soft/LCUI). It make building multiple views applications with LCUI a breeze. Features include:
+LCUI Router is the official router for [LCUI](https://github.com/lc-soft/LCUI). It provides a similar development experience to the [Vue Router](https://github.com/vuejs/vue-router) and make building multiple views applications with LCUI a breeze. Features include:
 
 - Nested route/view mapping
 - Modular, component-based router configuration
