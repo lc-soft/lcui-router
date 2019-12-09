@@ -16,7 +16,7 @@
     "release"
   ],
   "package": {
-    "output": "dist",
+    "output": "lcpkg/dist",
     "entry": {
       "lib": "bin/${arch}-${platform}/${mode}",
       "bin": "bin/${arch}-${platform}/${mode}",
