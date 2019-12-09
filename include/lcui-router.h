@@ -78,7 +78,12 @@ router_config_t *router_config_create(void);
 
 void router_config_destroy(router_config_t *config);
 
-// router location
+void router_config_set_path(router_config_t *config, const char *path);
+
+void router_config_set_component(router_config_t *config, const char *name,
+				 const char *component);
+
+    // router location
 
 router_location_t *router_location_create(const char *name, const char *path);
 
