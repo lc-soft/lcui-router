@@ -1,5 +1,6 @@
 # lcui-router
 
+[![GitHub Actions](https://github.com/lc-soft/lcui-router/workflows/C%2FC%2B%2B%20CI/badge.svg)](https://github.com/lc-soft/lcui-router/actions)
 [![Build Status](https://travis-ci.org/lc-soft/lcui-router.svg?branch=master)](https://travis-ci.org/lc-soft/lcui-router)
 [![Coverage Status](https://coveralls.io/repos/github/lc-soft/lcui-router/badge.svg?branch=master)](https://coveralls.io/github/lc-soft/lcui-router?branch=master)
 
