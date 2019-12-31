@@ -72,18 +72,20 @@ router_boolean_t router_is_same_route(const router_route_t *a,
 router_boolean_t router_is_included_route(const router_route_t *current,
 					  const router_route_t *target);
 
-    // router config
+// router config
 
 router_config_t *router_config_create(void);
 
 void router_config_destroy(router_config_t *config);
+
+void router_config_set_name(router_config_t *config, const char *name);
 
 void router_config_set_path(router_config_t *config, const char *path);
 
 void router_config_set_component(router_config_t *config, const char *name,
 				 const char *component);
 
-    // router location
+// router location
 
 router_location_t *router_location_create(const char *name, const char *path);
 
@@ -126,6 +128,12 @@ void router_route_destroy(router_route_t *route);
 
 const router_route_record_t *router_route_get_matched_record(
     const router_route_t *route, size_t index);
+
+const char *router_route_get_full_path(const router_route_t *route);
+
+const char *router_route_get_path(const router_route_t *route);
+
+const char *router_route_get_hash(const router_route_t *route);
 
 const char *router_route_get_param(const router_route_t *route,
 				   const char *key);

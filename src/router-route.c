@@ -50,6 +50,21 @@ const router_route_record_t *router_route_get_matched_record(
 	return LinkedList_Get(&route->matched, index);
 }
 
+const char *router_route_get_full_path(const router_route_t *route)
+{
+	return route->full_path;
+}
+
+const char *router_route_get_path(const router_route_t *route)
+{
+	return route->path;
+}
+
+const char *router_route_get_hash(const router_route_t *route)
+{
+	return route->hash;
+}
+
 const char *router_route_get_param(const router_route_t *route, const char *key)
 {
 	if (!route->params) {

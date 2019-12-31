@@ -95,7 +95,7 @@ void test_router_location(void)
 	it_s("location.query.order", str, "desc");
 
 	str = location->path;
-	it_s("location.path == '/search'", str, "/search");
+	it_s("location.path", str, "/search");
 
 	router_location_destroy(raw);
 	router_location_destroy(location);
@@ -104,10 +104,35 @@ void test_router_location(void)
 	location = router_location_normalize(raw, NULL, FALSE);
 
 	str = location->hash;
-	it_s("location.hash == '#pagination'", str, "#pagination");
+	it_s("location.hash", str, "#pagination");
 
 	router_location_destroy(raw);
 	router_location_destroy(location);
+}
+
+void test_router_route(void)
+{
+	router_route_t *route;
+	router_location_t *location;
+	router_location_t *raw;
+	const char *full_path = "/user/profile?tab=repos&order=desc&q=test#pagination";
+
+	raw = router_location_create(NULL, full_path);
+	location = router_location_normalize(raw, NULL, FALSE);
+	route = router_route_create(NULL, location);
+
+	it_s("route.path", router_route_get_path(route), "/user/profile");
+	it_s("route.query.q", router_route_get_query(route, "q"), "test");
+	it_s("route.query.tab", router_route_get_query(route, "tab"), "repos");
+	it_s("route.query.order", router_route_get_query(route, "order"),
+	     "desc");
+	it_s("route.query.other", router_route_get_query(route, "other"),
+	     NULL);
+	it_s("route.hash", router_route_get_hash(route), "#pagination");
+	it_s("route.fullPath", router_route_get_full_path(route), full_path);
+	router_location_destroy(raw);
+	router_location_destroy(location);
+	router_route_destroy(route);
 }
 
 void test_router_matcher(void)
@@ -435,6 +460,7 @@ int main(void)
 {
 	describe("router utils", test_router_utils);
 	describe("router location", test_router_location);
+	describe("router route", test_router_route);
 	describe("router matcher", test_router_matcher);
 	describe("router components", test_router_components);
 	printf("\n%zu tests, %zu passed.\n", tests_total, tests_passed);

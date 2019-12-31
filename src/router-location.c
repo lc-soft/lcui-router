@@ -66,14 +66,14 @@ static router_location_t *router_location_from_path(
 		path = strdup(raw->path);
 		for (i = 0; path[i]; ++i) {
 			if (path[i] == '#') {
-				hash = strdup(raw->path + i);
+				hash = strdup(path + i);
 				path[i] = 0;
 				break;
 			}
 		}
 		for (i = 0; path[i]; ++i) {
 			if (path[i] == '?') {
-				query_str = strdup(raw->path + i + 1);
+				query_str = strdup(path + i + 1);
 				path[i] = 0;
 				break;
 			}
@@ -153,8 +153,47 @@ const char *router_location_get_query(const router_location_t *location,
 	return router_string_dict_get(location->query, key);
 }
 
+#define STR_REALLOC(STR, LEN) STR = realloc(STR, sizeof(char) * (LEN + 1))
+
 char *router_location_stringify(const router_location_t *location)
 {
-	// TODO:
-	return NULL;
+	char *path;
+	const char *str;
+	size_t i, pairs;
+	size_t path_len;
+	DictIterator *iter;
+	DictEntry *entry;
+
+	path_len = strlen(location->path);
+	path = malloc(sizeof(char) * (path_len + 1));
+	strcpy(path, location->path);
+	if (location->query) {
+		pairs = 0;
+		iter = Dict_GetIterator(location->query);
+		while ((entry = Dict_Next(iter))) {
+			// ?key1=value1&key2=value2
+			i = path_len;
+			str = DictEntry_GetKey(entry);
+			path_len += strlen(str) + 2;
+			STR_REALLOC(path, path_len);
+			path[i++] = pairs > 0 ? '&' : '?';
+			path[i] = 0;
+			strcpy(path + i, str);
+			i = path_len - 1;
+			path[i++] = '=';
+			path[i] = 0;
+			str = DictEntry_GetVal(entry);
+			path_len += strlen(str);
+			STR_REALLOC(path, path_len);
+			strcpy(path + i, str);
+			pairs++;
+		}
+	}
+	if (location->hash) {
+		i = path_len;
+		path_len += strlen(location->hash);
+		STR_REALLOC(path, path_len);
+		strcpy(path + i, location->hash);
+	}
+	return path;
 }
