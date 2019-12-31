@@ -10,7 +10,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: install valgrind
-      run: sudo apt install valgrind -yy
+      run: |
+        apt-get update --fix-missing
+        sudo apt install valgrind -yy
     - name: install xmake
       uses: xmake-io/github-action-setup-xmake@v1.0.1
     - name: install LCUI
