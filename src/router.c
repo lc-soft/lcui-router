@@ -55,6 +55,11 @@ router_route_record_t *router_get_matched_route_record(router_t *router,
 	return LinkedList_Get(&router->history->current->matched, index);
 }
 
+router_history_t *router_get_history(router_t *router)
+{
+	return router->history;
+}
+
 router_watcher_t *router_watch(router_t *router, router_callback_t callback,
 			       void *data)
 {

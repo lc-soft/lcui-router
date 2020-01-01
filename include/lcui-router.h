@@ -173,6 +173,10 @@ void router_history_replace(router_history_t *history, router_route_t *route);
 
 void router_history_go(router_history_t *history, int delta);
 
+size_t router_history_get_index(router_history_t *history);
+
+size_t router_history_get_length(router_history_t *history);
+
 // router
 
 router_t *router_create(const char *name);
@@ -189,6 +193,8 @@ router_route_t *router_match(router_t *router,
 
 router_route_record_t *router_get_matched_route_record(router_t *router,
 						       size_t index);
+
+router_history_t *router_get_history(router_t *router);
 
 router_watcher_t *router_watch(router_t *router, router_callback_t callback,
 			       void *data);
