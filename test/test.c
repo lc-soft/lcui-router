@@ -72,9 +72,10 @@ void it_s(const char *name, const char *actual, const char *expected)
 		tests_passed++;
 		return;
 	}
-	printf(RED("   × %s == '%s'\n"), name, expected);
+	printf(RED("  × %s == '%s'\n"), name, expected);
 	if (expected) {
-		printf(RED("    AssertionError: '%s' == '%s'\n"), actual, expected);
+		printf(RED("    AssertionError: '%s' == '%s'\n"), actual,
+		       expected);
 	} else {
 		printf(RED("    AssertionError: '%s' == null\n"), actual);
 	}
@@ -294,7 +295,7 @@ void test_router_matcher(void)
 void test_router_utils(void)
 {
 	char *str;
-	char *p;
+	const char *p;
 	char key[256];
 	size_t key_len;
 	router_string_dict_t *a;
@@ -389,16 +390,16 @@ void test_router_utils(void)
 	p = str = "/:username/:repo/settings";
 	p = router_path_parse_key(p, key, &key_len);
 	it_s("path.keys('/:username/:repo/settings')[0].key", key, "username");
-	it_i("path.keys('/:username/:repo/settings')[0].index", p ? p - str : 0,
+	it_i("path.keys('/:username/:repo/settings')[0].index", (int)(p ? p - str : 0),
 	     11);
 	p = router_path_parse_key(p, key, &key_len);
 	it_s("path.keys('/:username/:repo/settings')[1].key", key, "repo");
-	it_i("path.keys('/:username/:repo/settings')[1].index", p ? p - str : 0,
+	it_i("path.keys('/:username/:repo/settings')[1].index", (int)(p ? p - str : 0),
 	     17);
 	p = router_path_parse_key(p, key, &key_len);
 	it_s("path.keys('/:username/:repo/settings')[2].key", key, "");
 	it_i("path.keys('/:username/:repo/settings')[2].index",
-	     p ? p - str : -1, -1);
+	     (int)(p ? p - str : -1), -1);
 
 	params = router_string_dict_create();
 	router_string_dict_set(params, "1", "one");
@@ -420,6 +421,125 @@ void test_router_utils(void)
 	str = router_path_fill_params("/foo/bar", NULL);
 	it_s("path.fillParams('/foo/bar')", str, "/foo/bar");
 	free(str);
+}
+
+void test_router_history(void)
+{
+	router_t *router;
+	router_config_t *config;
+	router_location_t *location;
+	router_history_t *history;
+	const router_route_t *route;
+
+	router = router_create(NULL);
+	config = router_config_create();
+	router_config_set_path(config, "/foo");
+	router_config_set_component(config, NULL, "foo");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "/foo/bar");
+	router_config_set_component(config, NULL, "foobar");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	config = router_config_create();
+	router_config_set_path(config, "/bar");
+	router_config_set_component(config, NULL, "bar");
+	router_add_route_record(router, config, NULL);
+	router_config_destroy(config);
+
+	history = router_get_history(router);
+	location = router_location_create(NULL, "/foo/bar");
+	router_push(router, location);
+	route = router_get_current_route(router);
+	it_s("router.push('/foo/bar'), router.currentRoute.path",
+	     router_route_get_path(route), "/foo/bar");
+	router_location_destroy(location);
+
+	location = router_location_create(NULL, "/bar");
+	router_push(router, location);
+	route = router_get_current_route(router);
+	it_s("router.push('/bar'), router.currentRoute.path",
+	     router_route_get_path(route), "/bar");
+	router_location_destroy(location);
+
+	location = router_location_create(NULL, "/foo");
+	router_push(router, location);
+	route = router_get_current_route(router);
+	it_s("router.push('/foo'), router.currentRoute.path",
+	     router_route_get_path(route), "/foo");
+	router_location_destroy(location);
+
+	it_i("router.history.index", (int)router_history_get_index(history), 2);
+
+	router_back(router);
+	route = router_get_current_route(router);
+	it_s("router.back(), router.currentRoute.path",
+	     router_route_get_path(route), "/bar");
+
+	router_back(router);
+	route = router_get_current_route(router);
+	it_s("router.back(), router.currentRoute.path",
+	     router_route_get_path(route), "/foo/bar");
+
+	router_back(router);
+	route = router_get_current_route(router);
+	it_s("router.back(), router.currentRoute.path",
+	     router_route_get_path(route), "/foo/bar");
+
+	router_forward(router);
+	route = router_get_current_route(router);
+	it_s("router.forward(), router.currentRoute.path",
+	     router_route_get_path(route), "/bar");
+
+	router_back(router);
+	router_go(router, 100);
+	route = router_get_current_route(router);
+	it_s("router.back(), router.go(100), router.currentRoute.path",
+	     router_route_get_path(route), "/foo");
+
+	router_go(router, -2);
+	route = router_get_current_route(router);
+	it_s("router.back(), router.go(-2), router.currentRoute.path",
+	     router_route_get_path(route), "/foo/bar");
+
+	router_go(router, -100);
+	route = router_get_current_route(router);
+	it_s("router.back(), router.go(-100), router.currentRoute.path",
+	     router_route_get_path(route), "/foo/bar");
+
+	location = router_location_create(NULL, "/bar");
+	it_i("router.history.length", (int)router_history_get_length(history), 3);
+	router_push(router, location);
+	it_i("router.push('/bar'), router.history.length",
+	     (int)router_history_get_length(history), 2);
+	router_location_destroy(location);
+
+	location = router_location_create(NULL, "/foo");
+	router_replace(router, location);
+	route = router_get_current_route(router);
+	it_s("router.replace('/foo'), router.currentRoute.path",
+	     router_route_get_path(route), "/foo");
+	router_location_destroy(location);
+
+	router_back(router);
+	route = router_get_current_route(router);
+	it_s("router.back(), router.currentRoute.path",
+	     router_route_get_path(route), "/foo/bar");
+
+	router_forward(router);
+	route = router_get_current_route(router);
+	it_s("router.forward(), router.currentRoute.path",
+	     router_route_get_path(route), "/foo");
+
+	router_forward(router);
+	route = router_get_current_route(router);
+	it_s("router.forward(), router.currentRoute.path",
+	     router_route_get_path(route), "/foo");
+
+	router_destroy(router);
 }
 
 void test_router_components(void)
@@ -521,6 +641,7 @@ int main(void)
 	describe("router location", test_router_location);
 	describe("router route", test_router_route);
 	describe("router matcher", test_router_matcher);
+	describe("router history", test_router_history);
 	describe("router components", test_router_components);
 	printf("\n%zu tests, %zu passed.\n", tests_total, tests_passed);
 	return tests_total - tests_passed;
