@@ -181,9 +181,10 @@ router_route_t *router_matcher_match_by_name(
 			key = node->data;
 			value = Dict_FetchValue(current_route->params, key);
 			if (value && !Dict_FetchValue(location->params, key)) {
-				Dict_Add(location->params, key, value);
+				router_string_dict_set(location->params, key, value);
 			}
 		}
+		LinkedList_Clear(&param_names, free);
 	}
 	location->path =
 	    router_path_fill_params(record->path, location->params);

@@ -194,6 +194,7 @@ char *router_location_stringify(const router_location_t *location)
 			strcpy(path + i, str);
 			pairs++;
 		}
+		Dict_ReleaseIterator(iter);
 	}
 	if (location->hash) {
 		i = path_len;

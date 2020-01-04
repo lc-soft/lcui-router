@@ -228,6 +228,7 @@ void test_router_matcher(void)
 
 	location = router_location_create(NULL, "/users/root");
 	router_push(router, location);
+	router_location_destroy(location);
 	location = router_location_create("user#posts", NULL);
 	resolved = router_resolve(router, location, FALSE);
 	it_b("match({ name: 'user#posts' })", !!resolved, TRUE);
@@ -414,8 +415,8 @@ void test_router_utils(void)
 	it_s("path.fillParams('/:1:2:3/foo', { 1: 'one', 2: 'two', 3: "
 	     "'three' })",
 	     str, NULL);
-	str ? free(str) : NULL;
 
+	router_string_dict_destroy(params);
 	str = router_path_fill_params("/foo/bar", NULL);
 	it_s("path.fillParams('/foo/bar')", str, "/foo/bar");
 	free(str);
