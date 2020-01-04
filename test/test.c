@@ -73,7 +73,11 @@ void it_s(const char *name, const char *actual, const char *expected)
 		return;
 	}
 	printf(RED("   × %s == '%s'\n"), name, expected);
-	printf(RED("    AssertionError: '%s' == '%s'\n"), actual, expected);
+	if (expected) {
+		printf(RED("    AssertionError: '%s' == '%s'\n"), actual, expected);
+	} else {
+		printf(RED("    AssertionError: '%s' == null\n"), actual);
+	}
 	printf(GREEN("    + expected ") RED("- actual\n\n"));
 	printf(RED("    - %s\n"), actual);
 	printf(GREEN("    + %s\n\n"), expected);
@@ -115,7 +119,8 @@ void test_router_route(void)
 	router_route_t *route;
 	router_location_t *location;
 	router_location_t *raw;
-	const char *full_path = "/user/profile?tab=repos&order=desc&q=test#pagination";
+	const char *full_path =
+	    "/user/profile?tab=repos&order=desc&q=test#pagination";
 
 	raw = router_location_create(NULL, full_path);
 	location = router_location_normalize(raw, NULL, FALSE);
@@ -126,8 +131,7 @@ void test_router_route(void)
 	it_s("route.query.tab", router_route_get_query(route, "tab"), "repos");
 	it_s("route.query.order", router_route_get_query(route, "order"),
 	     "desc");
-	it_s("route.query.other", router_route_get_query(route, "other"),
-	     NULL);
+	it_s("route.query.other", router_route_get_query(route, "other"), NULL);
 	it_s("route.hash", router_route_get_hash(route), "#pagination");
 	it_s("route.fullPath", router_route_get_full_path(route), full_path);
 	router_location_destroy(raw);
@@ -191,14 +195,9 @@ void test_router_matcher(void)
 
 	config = router_config_create();
 	router_config_set_path(config, "posts");
+	router_config_set_name(config, "user#posts");
 	router_config_set_component(config, NULL, "user-posts");
 	router_add_route_record(router, config, route_user_show);
-	router_config_destroy(config);
-
-	config = router_config_create();
-	router_config_set_path(config, "/users/:id");
-	router_config_set_component(config, NULL, "users");
-	router_add_route_record(router, config, NULL);
 	router_config_destroy(config);
 
 	config = router_config_create();
@@ -219,6 +218,26 @@ void test_router_matcher(void)
 	route = router_resolved_get_route(resolved);
 	str = router_route_get_param(route, "username");
 	it_s("match('/users/root').route.params.username", str, "root");
+	router_resolved_destroy(resolved);
+
+	location = router_location_create("user#posts", NULL);
+	resolved = router_resolve(router, location, FALSE);
+	it_b("match({ name: 'user#posts' })", !resolved, FALSE);
+	router_location_destroy(location);
+	router_resolved_destroy(resolved);
+
+	location = router_location_create(NULL, "/users/root");
+	router_push(router, location);
+	location = router_location_create("user#posts", NULL);
+	resolved = router_resolve(router, location, FALSE);
+	it_b("match({ name: 'user#posts' })", !!resolved, TRUE);
+	route = router_resolved_get_route(resolved);
+	str = router_route_get_param(route, "username");
+	it_s("match({ name: 'user#posts' }).route.params.username",
+	     router_route_get_param(route, "username"), "root");
+	it_s("match({ name: 'user#posts' }).route.fullPath",
+	     router_route_get_full_path(route), "/users/root/posts");
+	router_location_destroy(location);
 	router_resolved_destroy(resolved);
 
 	location = router_location_create(NULL, "/users/root/posts");
@@ -274,8 +293,45 @@ void test_router_matcher(void)
 void test_router_utils(void)
 {
 	char *str;
+	char *p;
+	char key[256];
+	size_t key_len;
 	router_string_dict_t *a;
 	router_string_dict_t *b;
+	router_string_dict_t *params;
+
+	a = router_string_dict_create();
+	b = router_string_dict_create();
+	router_string_dict_set(a, "id", "404");
+	router_string_dict_set(b, "id", "404");
+	router_string_dict_set(a, "name", "git");
+	router_string_dict_set(b, "name", "git");
+
+	it_b("isObjectEqual({ id: '404', name: 'git' }, { id: '404', name: "
+	     "'git' })",
+	     router_string_dict_equal(a, b), TRUE);
+
+	router_string_dict_set(b, "id", "200");
+	it_b("isObjectEqual({ id: '404', name: 'git' }, { id: '200', name: "
+	     "'git' })",
+	     router_string_dict_equal(a, b), FALSE);
+
+	router_string_dict_delete(b, "id");
+	it_b("isObjectIncludes({ id: '404', name: 'git' }, { name: 'git' })",
+	     router_string_dict_includes(a, b), TRUE);
+	router_string_dict_delete(a, "name");
+	it_b("isObjectIncludes({ id: '404' }, { name: '200' })",
+	     router_string_dict_includes(a, b), FALSE);
+	router_string_dict_delete(a, "id");
+	router_string_dict_delete(b, "name");
+	it_b("isObjectEqual({}, {})", router_string_dict_equal(a, b), TRUE);
+	it_i("string.compare('', '')", router_string_compare("", ""), 0);
+	it_b("string.compare(null, 'a') != 0",
+	     router_string_compare(NULL, "a") != 0, TRUE);
+	it_i("string.compare(null, null)", router_string_compare(NULL, NULL),
+	     0);
+	router_string_dict_destroy(a);
+	router_string_dict_destroy(b);
 
 	str = router_path_resolve("", NULL, TRUE);
 	it_s("path.resolve('', null, true) == '/'", str, "/");
@@ -329,38 +385,40 @@ void test_router_utils(void)
 	it_b("path.startsWith('/profile/', '/profile')",
 	     router_path_starts_with("/profile/", "/profile"), TRUE);
 
-	a = router_string_dict_create();
-	b = router_string_dict_create();
-	router_string_dict_set(a, "id", "404");
-	router_string_dict_set(b, "id", "404");
-	router_string_dict_set(a, "name", "git");
-	router_string_dict_set(b, "name", "git");
+	p = str = "/:username/:repo/settings";
+	p = router_path_parse_key(p, key, &key_len);
+	it_s("path.keys('/:username/:repo/settings')[0].key", key, "username");
+	it_i("path.keys('/:username/:repo/settings')[0].index", p ? p - str : 0,
+	     11);
+	p = router_path_parse_key(p, key, &key_len);
+	it_s("path.keys('/:username/:repo/settings')[1].key", key, "repo");
+	it_i("path.keys('/:username/:repo/settings')[1].index", p ? p - str : 0,
+	     17);
+	p = router_path_parse_key(p, key, &key_len);
+	it_s("path.keys('/:username/:repo/settings')[2].key", key, "");
+	it_i("path.keys('/:username/:repo/settings')[2].index",
+	     p ? p - str : -1, -1);
 
-	it_b("isObjectEqual({ id: '404', name: 'git' }, { id: '404', name: "
-	     "'git' })",
-	     router_string_dict_equal(a, b), TRUE);
+	params = router_string_dict_create();
+	router_string_dict_set(params, "1", "one");
+	router_string_dict_set(params, "2", "two");
+	router_string_dict_set(params, "3", "three");
+	router_string_dict_set(params, "word", "good");
+	str = router_path_fill_params("/:1/:2/:3/foo", params);
+	it_s("path.fillParams('/:1/:2/:3/foo', { 1: 'one', 2: 'two', 3: "
+	     "'three' })",
+	     str, "/one/two/three/foo");
+	free(str);
 
-	router_string_dict_set(b, "id", "200");
-	it_b("isObjectEqual({ id: '404', name: 'git' }, { id: '200', name: "
-	     "'git' })",
-	     router_string_dict_equal(a, b), FALSE);
+	str = router_path_fill_params("/:1:2:3/foo", params);
+	it_s("path.fillParams('/:1:2:3/foo', { 1: 'one', 2: 'two', 3: "
+	     "'three' })",
+	     str, NULL);
+	str ? free(str) : NULL;
 
-	router_string_dict_delete(b, "id");
-	it_b("isObjectIncludes({ id: '404', name: 'git' }, { name: 'git' })",
-	     router_string_dict_includes(a, b), TRUE);
-	router_string_dict_delete(a, "name");
-	it_b("isObjectIncludes({ id: '404' }, { name: '200' })",
-	     router_string_dict_includes(a, b), FALSE);
-	router_string_dict_delete(a, "id");
-	router_string_dict_delete(b, "name");
-	it_b("isObjectEqual({}, {})", router_string_dict_equal(a, b), TRUE);
-	it_i("string.compare('', '')", router_string_compare("", ""), 0);
-	it_b("string.compare(null, 'a') != 0",
-	     router_string_compare(NULL, "a") != 0, TRUE);
-	it_i("string.compare(null, null)", router_string_compare(NULL, NULL),
-	     0);
-	router_string_dict_destroy(a);
-	router_string_dict_destroy(b);
+	str = router_path_fill_params("/foo/bar", NULL);
+	it_s("path.fillParams('/foo/bar')", str, "/foo/bar");
+	free(str);
 }
 
 void test_router_components(void)
@@ -394,7 +452,6 @@ void test_router_components(void)
 	router_add_route_record(router, config, NULL);
 	router_config_destroy(config);
 
-	Logger_SetLevel(LOGGER_LEVEL_ERROR);
 	LCUI_Init();
 	LCUIWidget_NewPrototype("foo", NULL);
 	LCUIWidget_NewPrototype("foobar", NULL);
@@ -458,6 +515,7 @@ void test_router_components(void)
 
 int main(void)
 {
+	Logger_SetLevel(LOGGER_LEVEL_OFF);
 	describe("router utils", test_router_utils);
 	describe("router location", test_router_location);
 	describe("router route", test_router_route);
