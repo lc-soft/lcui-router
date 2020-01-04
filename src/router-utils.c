@@ -10,15 +10,15 @@ const char *router_path_parse_key(const char *path, char key[256],
 	}
 	for (*key_len = 0, p = path;; ++p) {
 		if (*p == '/' || *p == 0) {
-			key[*key_len] = 0;
-			if (*key_len < 2) {
-				*key_len = 0;
-				if (!*p) {
-					break;
-				}
-				continue;
+			if (*key_len > 1) {
+				--(*key_len);
+				key[*key_len] = 0;
+				return p + 1;
 			}
-			return p;
+			if (!*p) {
+				break;
+			}
+			*key_len = 0;
 		} else if (*key_len > 0) {
 			key[*key_len - 1] = *p;
 			++*key_len;
@@ -26,18 +26,18 @@ const char *router_path_parse_key(const char *path, char key[256],
 			*key_len = 1;
 		}
 	}
-	return p;
+	key[0] = 0;
+	return NULL;
 }
 
 size_t router_path_parse_keys(const char *path, router_linkedlist_t *keys)
 {
 	const char *next;
-	const char *prev;
 	size_t key_len;
 	char key[256];
 
-	next = prev = path;
-	while ((next = router_path_parse_key(path, key, &key_len))) {
+	next = path;
+	while ((next = router_path_parse_key(next, key, &key_len))) {
 		if (key_len < 1) {
 			break;
 		}
@@ -58,20 +58,43 @@ char *router_path_fill_params(const char *path, router_string_dict_t *params)
 	size_t full_path_len;
 	size_t i = 0;
 
+	prev = next = path;
 	full_path_len = strlen(path) + 1;
 	full_path = malloc(sizeof(char) * full_path_len);
-	for (prev = next = path;;
-	     next = router_path_parse_key(next, key, &key_len)) {
-		value_len = next - key_len - prev + 1;
-		strncpy(full_path + i, prev, value_len);
-		i += value_len;
-		if (key_len < 1) {
+	// path: /repos/:user/:repo/tree, params: { user: 'root', repo: 'example' }
+	// full_path:
+	// [/repos/:user/:repo/tree]
+	// prev: 0, next: 13, value: /repos/, full_path: /repos/
+	// fill param, full_path: /repos/admin
+	// /repos/:user/[:repo/tree]
+	// prev: 13, next: 19, value: , full_path: /repos/admin/
+	// fill param, full_path: /repos/admin/example
+	// /repos/:user/:repo/[tree]
+	// prev: 19, next: null, value: tree, full_path: /repos/admin/example/tree
+	if (!params) {
+		strcpy(full_path, path);
+		return full_path;
+	}
+	while (1) {
+		next = router_path_parse_key(next, key, &key_len);
+		if (!next) {
+			full_path[i++] = '/';
+			strcpy(full_path + i, prev);
 			break;
 		}
+		value_len = next - key_len - prev - 2;
+		if (value_len > 0) {
+			strncpy(full_path + i, prev, value_len);
+			i += value_len;
+		} else {
+			full_path[i++] = '/';
+		}
+		full_path[i] = 0;
+		prev = next;
 		value = Dict_FetchValue(params, key);
 		if (!value) {
 			Logger_Error(
-			    "can not match parameter value by key: \"%s\"",
+			    "can not match parameter value by key: \"%s\"\n",
 			    key);
 			free(full_path);
 			return NULL;
@@ -82,7 +105,6 @@ char *router_path_fill_params(const char *path, router_string_dict_t *params)
 		strcpy(full_path + i, value);
 		i += value_len;
 	}
-	full_path[i] = 0;
 	return full_path;
 }
 
@@ -282,6 +304,6 @@ router_boolean_t router_is_included_route(const router_route_t *current,
 {
 	return router_path_starts_with(current->path, target->path) &&
 	       (!target->hash ||
-		current->hash && strcmp(current->hash, target->hash) == 0) &&
+		(current->hash && strcmp(current->hash, target->hash) == 0)) &&
 	       router_string_dict_includes(current->query, target->query);
 }

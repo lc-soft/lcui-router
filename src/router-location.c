@@ -164,9 +164,15 @@ char *router_location_stringify(const router_location_t *location)
 	DictIterator *iter;
 	DictEntry *entry;
 
-	path_len = strlen(location->path);
-	path = malloc(sizeof(char) * (path_len + 1));
-	strcpy(path, location->path);
+	if (location->path) {
+		path_len = strlen(location->path);
+		path = malloc(sizeof(char) * (path_len + 1));
+		strcpy(path, location->path);
+	} else {
+		path_len = 0;
+		path = malloc(sizeof(char) * (path_len + 1));
+		strcpy(path, "");
+	}
 	if (location->query) {
 		pairs = 0;
 		iter = Dict_GetIterator(location->query);
