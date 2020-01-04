@@ -173,9 +173,9 @@ void router_history_replace(router_history_t *history, router_route_t *route);
 
 void router_history_go(router_history_t *history, int delta);
 
-size_t router_history_get_index(router_history_t *history);
+size_t router_history_get_index(const router_history_t *history);
 
-size_t router_history_get_length(router_history_t *history);
+size_t router_history_get_length(const router_history_t *history);
 
 // router
 

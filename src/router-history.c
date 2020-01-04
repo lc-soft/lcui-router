@@ -62,6 +62,23 @@ static void router_history_change(router_history_t *history, router_route_t *to)
 
 void router_history_push(router_history_t *history, router_route_t *route)
 {
+	size_t index = 0;
+	router_linkedlist_node_t *next;
+	router_linkedlist_node_t *node = NULL;
+
+	for (LinkedList_Each(node, &history->routes)) {
+		if (index <= history->index) {
+			index++;
+			continue;
+		}
+		while (node) {
+			next = node->next;
+			router_route_destroy(node->data);
+			LinkedList_DeleteNode(&history->routes, node);
+			node = next;
+		}
+		break;
+	}
 	router_history_change(history, route);
 	LinkedList_Append(&history->routes, route);
 	history->index = (int)history->routes.length - 1;
@@ -81,22 +98,21 @@ void router_history_replace(router_history_t *history, router_route_t *route)
 void router_history_go(router_history_t *history, int delta)
 {
 	history->index += delta;
-	if ((size_t)history->index >= history->routes.length) {
-		history->index = (int)history->routes.length - 1;
-	}
 	if (history->index < 0) {
 		history->index = 0;
+	} else if ((size_t)history->index >= history->routes.length) {
+		history->index = (int)history->routes.length - 1;
 	}
 	router_history_change(history,
 			      LinkedList_Get(&history->routes, history->index));
 }
 
-size_t router_history_get_index(router_history_t *history)
+size_t router_history_get_index(const router_history_t *history)
 {
 	return history->index;
 }
 
-size_t router_history_get_length(router_history_t *history)
+size_t router_history_get_length(const router_history_t *history)
 {
 	return history->routes.length;
 }
