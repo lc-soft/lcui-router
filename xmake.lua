@@ -27,6 +27,7 @@ target("test")
             local args = option.raw_parse(option.get("arguments") or {}, options)
             if args.memcheck then
                 table.insert(argv, "--leak-check=full")
+                table.insert(argv, "--error-exitcode=42")
             end
             table.insert(argv, target:targetfile())
             os.execv("valgrind", argv)
