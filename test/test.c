@@ -86,9 +86,12 @@ void it_s(const char *name, const char *actual, const char *expected)
 
 void test_router_location(void)
 {
+	router_route_t *route;
 	router_location_t *raw;
 	router_location_t *location;
+	router_route_record_t *record;
 	const char *str;
+	char *path;
 
 	raw = router_location_create(NULL, "/search?type=issue&order=desc");
 	location = router_location_normalize(raw, NULL, FALSE);
@@ -113,6 +116,54 @@ void test_router_location(void)
 
 	router_location_destroy(raw);
 	router_location_destroy(location);
+
+	record = router_route_record_create();
+	location = router_location_create(NULL, "/repos/root/example/issues");
+	router_route_record_set_path(record, "/repos/:user/:repo/issues");
+	route = router_route_create(record, location);
+	router_location_destroy(location);
+	raw = router_location_create(NULL, NULL);
+	router_location_set_param(raw, "user", "foo");
+	router_location_set_param(raw, "repo", "bar");
+	location = router_location_normalize(raw, route, FALSE);
+	it_s("normalize({ params: { user: 'foo', repo: 'bar' } }).path",
+	     router_location_get_path(location), "/repos/foo/bar/issues");
+	router_location_destroy(raw);
+	router_location_destroy(location);
+
+	raw = router_location_create(NULL, NULL);
+	router_location_set_param(raw, "user", "root");
+	router_location_set_param(raw, "repo", "example");
+	location = router_location_normalize(raw, route, FALSE);
+	it_s("normalize({ params: { user: 'root', repo: 'example' } }).path",
+	     router_location_get_path(location), "/repos/root/example/issues");
+	router_location_destroy(raw);
+	router_location_destroy(location);
+
+	raw = router_location_create(NULL, NULL);
+	router_location_set_query(raw, "q", "bug");
+	router_location_set_query(raw, "state", "closed");
+	location = router_location_normalize(raw, route, FALSE);
+	path = router_location_stringify(location);
+	it_s("stringify(normalize({ query: { q: 'bug', state: 'closed' } }))",
+	     path, "/repos/root/example/issues?q=bug&state=closed");
+	free(path);
+	router_location_destroy(raw);
+	router_location_destroy(location);
+
+	raw = router_location_create(NULL, NULL);
+	router_location_set_query(raw, "order", "desc");
+	router_location_set_query(raw, "assignee", "root");
+	location = router_location_normalize(raw, route, FALSE);
+	path = router_location_stringify(location);
+	it_s("stringify(normalize({ query: { order: 'desc', assignee: 'root' } }))",
+	     path, "/repos/root/example/issues?assignee=root&order=desc");
+	free(path);
+	router_location_destroy(raw);
+	router_location_destroy(location);
+
+	router_route_record_destroy(record);
+	router_route_destroy(route);
 }
 
 void test_router_route(void)
@@ -390,12 +441,12 @@ void test_router_utils(void)
 	p = str = "/:username/:repo/settings";
 	p = router_path_parse_key(p, key, &key_len);
 	it_s("path.keys('/:username/:repo/settings')[0].key", key, "username");
-	it_i("path.keys('/:username/:repo/settings')[0].index", (int)(p ? p - str : 0),
-	     11);
+	it_i("path.keys('/:username/:repo/settings')[0].index",
+	     (int)(p ? p - str : 0), 11);
 	p = router_path_parse_key(p, key, &key_len);
 	it_s("path.keys('/:username/:repo/settings')[1].key", key, "repo");
-	it_i("path.keys('/:username/:repo/settings')[1].index", (int)(p ? p - str : 0),
-	     17);
+	it_i("path.keys('/:username/:repo/settings')[1].index",
+	     (int)(p ? p - str : 0), 17);
 	p = router_path_parse_key(p, key, &key_len);
 	it_s("path.keys('/:username/:repo/settings')[2].key", key, "");
 	it_i("path.keys('/:username/:repo/settings')[2].index",
@@ -511,7 +562,8 @@ void test_router_history(void)
 	     router_route_get_path(route), "/foo/bar");
 
 	location = router_location_create(NULL, "/bar");
-	it_i("router.history.length", (int)router_history_get_length(history), 3);
+	it_i("router.history.length", (int)router_history_get_length(history),
+	     3);
 	router_push(router, location);
 	it_i("router.push('/bar'), router.history.length",
 	     (int)router_history_get_length(history), 2);
