@@ -116,7 +116,7 @@ router_location_t *router_location_normalize(const router_location_t *raw,
 		router_string_dict_extend(params, raw->params);
 		if (current->name) {
 			router_location_set_name(location, current->name);
-			Dict_Release(location->params);
+			router_string_dict_destroy(location->params);
 			location->params = params;
 		} else if (current->matched.length > 0) {
 			record = LinkedList_Get(&current->matched,
@@ -126,7 +126,9 @@ router_location_t *router_location_normalize(const router_location_t *raw,
 			}
 			location->path =
 			    router_path_fill_params(record->path, params);
+			router_string_dict_destroy(params);
 		} else {
+			router_string_dict_destroy(params);
 			Logger_Warning("relative params navigation requires a "
 				       "current route.");
 		}
