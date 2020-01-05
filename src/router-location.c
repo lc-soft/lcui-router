@@ -135,6 +135,15 @@ router_location_t *router_location_normalize(const router_location_t *raw,
 	return router_location_from_path(raw, current, append);
 }
 
+int router_location_set_param(router_location_t *location, const char *key,
+			      const char *value)
+{
+	if (!location->params) {
+		location->params = router_string_dict_create();
+	}
+	return router_string_dict_set(location->params, key, value);
+}
+
 const char *router_location_get_param(const router_location_t *location,
 				      const char *key)
 {
@@ -144,6 +153,15 @@ const char *router_location_get_param(const router_location_t *location,
 	return router_string_dict_get(location->params, key);
 }
 
+int router_location_set_query(router_location_t *location, const char *key,
+			      const char *value)
+{
+	if (!location->query) {
+		location->query = router_string_dict_create();
+	}
+	return router_string_dict_set(location->query, key, value);
+}
+
 const char *router_location_get_query(const router_location_t *location,
 				      const char *key)
 {
@@ -151,6 +169,11 @@ const char *router_location_get_query(const router_location_t *location,
 		return NULL;
 	}
 	return router_string_dict_get(location->query, key);
+}
+
+const char *router_location_get_path(const router_location_t *location)
+{
+	return location->path;
 }
 
 #define STR_REALLOC(STR, LEN) STR = realloc(STR, sizeof(char) * (LEN + 1))

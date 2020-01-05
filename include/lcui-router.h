@@ -99,11 +99,19 @@ router_location_t *router_location_normalize(const router_location_t *raw,
 					     const router_route_t *current,
 					     router_boolean_t append);
 
+int router_location_set_param(router_location_t *location, const char *key,
+			      const char *value);
+
 const char *router_location_get_param(const router_location_t *location,
 				      const char *key);
 
+int router_location_set_query(router_location_t *location, const char *key,
+			      const char *value);
+
 const char *router_location_get_query(const router_location_t *location,
 				      const char *key);
+
+const char *router_location_get_path(const router_location_t *location);
 
 char *router_location_stringify(const router_location_t *location);
 
