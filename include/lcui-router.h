@@ -1,6 +1,8 @@
 #ifndef LCUI_ROUTER_H
 #define LCUI_ROUTER_H
 
+#define LCUI_ROUTER_VERSION "0.1.0"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -231,6 +233,8 @@ void router_back(router_t *router);
 void router_forward(router_t *router);
 
 router_t *router_get_by_name(const char *name);
+
+const char *router_get_version(void);
 
 #ifdef __cplusplus
 }

@@ -160,3 +160,8 @@ router_t *router_get_by_name(const char *name)
 	Logger_Error("no router named \"%s\" was found", name);
 	return NULL;
 }
+
+const char *router_get_version(void)
+{
+	return LCUI_ROUTER_VERSION;
+}

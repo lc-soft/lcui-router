@@ -12,7 +12,8 @@ typedef struct RouterViewRec_ {
 
 static LCUI_WidgetPrototype router_view_proto;
 
-static LCUI_Widget RouterView_GetMatched(LCUI_Widget w, const router_route_t *route)
+static LCUI_Widget RouterView_GetMatched(LCUI_Widget w,
+					 const router_route_t *route)
 {
 	const char *name;
 	const char *component_name;
@@ -35,7 +36,8 @@ static LCUI_Widget RouterView_GetMatched(LCUI_Widget w, const router_route_t *ro
 		component = Dict_FetchValue(view->cache, component_name);
 		if (!component) {
 			component = LCUIWidget_New(component_name);
-			Dict_Add(view->cache, (void*)component_name, component);
+			Dict_Add(view->cache, (void *)component_name,
+				 component);
 		}
 	} else {
 		component = LCUIWidget_New(component_name);
@@ -44,7 +46,7 @@ static LCUI_Widget RouterView_GetMatched(LCUI_Widget w, const router_route_t *ro
 }
 
 static void RouterView_OnRouteUpdate(void *w, const router_route_t *to,
-					const router_route_t *from)
+				     const router_route_t *from)
 {
 	RouterView view;
 
@@ -110,7 +112,8 @@ static void RouterView_OnInit(LCUI_Widget w)
 	view = Widget_AddData(w, router_view_proto, sizeof(RouterViewRec));
 	view->router = NULL;
 	view->watcher = NULL;
-	view->cache = Dict_Create(&DictType_StringCopyKey, NULL);;
+	view->cache = Dict_Create(&DictType_StringCopyKey, NULL);
+	;
 	view->keep_alive = FALSE;
 	Widget_BindEvent(w, "ready", RouterView_OnReady, NULL, NULL);
 }
