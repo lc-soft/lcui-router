@@ -3,10 +3,12 @@
 router_matcher_t *router_matcher_create(void)
 {
 	router_matcher_t *matcher;
+	static DictType type;
 
+	Dict_InitStringKeyType(&type);
 	matcher = malloc(sizeof(router_matcher_t));
-	matcher->name_map = Dict_Create(&DictType_StringKey, NULL);
-	matcher->path_map = Dict_Create(&DictType_StringKey, NULL);
+	matcher->name_map = Dict_Create(&type, NULL);
+	matcher->path_map = Dict_Create(&type, NULL);
 	LinkedList_Init(&matcher->path_list);
 	return matcher;
 }

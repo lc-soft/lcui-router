@@ -7,6 +7,7 @@ typedef struct RouterViewRec_ {
 	router_watcher_t *watcher;
 	router_boolean_t keep_alive;
 	Dict *cache;
+	DictType cache_dict_type;
 	LCUI_Widget matched_widget;
 } RouterViewRec, *RouterView;
 
@@ -112,8 +113,8 @@ static void RouterView_OnInit(LCUI_Widget w)
 	view = Widget_AddData(w, router_view_proto, sizeof(RouterViewRec));
 	view->router = NULL;
 	view->watcher = NULL;
-	view->cache = Dict_Create(&DictType_StringCopyKey, NULL);
-	;
+	Dict_InitStringCopyKeyType(&view->cache_dict_type);
+	view->cache = Dict_Create(&view->cache_dict_type, NULL);
 	view->keep_alive = FALSE;
 	Widget_BindEvent(w, "ready", RouterView_OnReady, NULL, NULL);
 }

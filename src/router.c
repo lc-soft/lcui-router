@@ -1,6 +1,7 @@
 ﻿#include "router.h"
 
 static Dict *routers = NULL;
+static DictType routers_dict_type;
 
 router_t *router_create(const char *name)
 {
@@ -16,7 +17,8 @@ router_t *router_create(const char *name)
 	router->matcher = router_matcher_create();
 	router->history = router_history_create();
 	if (!routers) {
-		routers = Dict_Create(&DictType_StringKey, NULL);
+		Dict_InitStringKeyType(&routers_dict_type);
+		routers = Dict_Create(&routers_dict_type, NULL);
 	}
 	Dict_Add(routers, router->name, router);
 	return router;

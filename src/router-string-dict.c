@@ -14,7 +14,7 @@ router_string_dict_t *router_string_dict_create(void)
 {
 	static DictType type;
 
-	type = DictType_StringCopyKey;
+	Dict_InitStringCopyKeyType(&type);
 	type.valDup = router_string_dict_val_dup;
 	type.valDestructor = router_string_dict_val_free;
 	return Dict_Create(&type, NULL);
