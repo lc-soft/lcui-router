@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\src\router.c" />
+    <ClCompile Include="..\..\src\router-config.c" />
+    <ClCompile Include="..\..\src\router-history.c" />
+    <ClCompile Include="..\..\src\router-link.c" />
+    <ClCompile Include="..\..\src\router-location.c" />
+    <ClCompile Include="..\..\src\router-matcher.c" />
+    <ClCompile Include="..\..\src\router-route.c" />
+    <ClCompile Include="..\..\src\router-route-record.c" />
+    <ClCompile Include="..\..\src\router-string-dict.c" />
+    <ClCompile Include="..\..\src\router-utils.c" />
+    <ClCompile Include="..\..\src\router-view.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\router.h" />
+  </ItemGroup>
+</Project>

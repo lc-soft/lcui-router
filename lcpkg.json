@@ -19,20 +19,19 @@
     "output": "lcpkg/dist",
     "entry": {
       "lib": "bin/${arch}-${platform}/${mode}",
-      "bin": "bin/${arch}-${platform}/${mode}",
       "include": "include"
     }
   },
   "dependencies": {
     "LCUI": {
-      "version": "v1.3.0",
+      "version": "v2.0.0",
       "uri": "github:lc-soft/LCUI",
       "resolved": {
-        "x64-uwp": "https://github.com/lc-soft/LCUI/releases/download/v1.3.0/LCUI-1.3.0_x64-uwp.lcpkg.zip",
-        "all": "https://github.com/lc-soft/LCUI/releases/download/v1.3.0/LCUI-1.3.0_x86-windows.lcpkg.zip",
-        "x64-windows": "https://github.com/lc-soft/LCUI/releases/download/v1.3.0/LCUI-1.3.0_x64-windows.lcpkg.zip",
-        "x86-uwp": "https://github.com/lc-soft/LCUI/releases/download/v1.3.0/LCUI-1.3.0_x86-uwp.lcpkg.zip",
-        "x86-windows": "https://github.com/lc-soft/LCUI/releases/download/v1.3.0/LCUI-1.3.0_x86-windows.lcpkg.zip"
+        "all": "https://github.com/lc-soft/LCUI/releases/download/v2.0.0/LCUI-2.0.0_x86-windows.lcpkg.zip",
+        "x64-uwp": "https://github.com/lc-soft/LCUI/releases/download/v2.0.0/LCUI-2.0.0_x64-uwp.lcpkg.zip",
+        "x64-windows": "https://github.com/lc-soft/LCUI/releases/download/v2.0.0/LCUI-2.0.0_x64-windows.lcpkg.zip",
+        "x86-uwp": "https://github.com/lc-soft/LCUI/releases/download/v2.0.0/LCUI-2.0.0_x86-uwp.lcpkg.zip",
+        "x86-windows": "https://github.com/lc-soft/LCUI/releases/download/v2.0.0/LCUI-2.0.0_x86-windows.lcpkg.zip"
       },
       "linkage": "auto"
     }
