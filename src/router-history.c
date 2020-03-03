@@ -62,7 +62,7 @@ static void router_history_change(router_history_t *history, router_route_t *to)
 
 void router_history_push(router_history_t *history, router_route_t *route)
 {
-	size_t index = 0;
+	int index = 0;
 	router_linkedlist_node_t *next;
 	router_linkedlist_node_t *node = NULL;
 

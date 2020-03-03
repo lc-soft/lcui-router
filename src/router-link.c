@@ -91,9 +91,10 @@ static void RouterLink_OnSetAttribute(LCUI_Widget w, const char *name,
 
 static void RouterLink_OnReady(LCUI_Widget w, LCUI_WidgetEvent e, void *arg)
 {
+	const char *name = NULL;
 	router_t *router;
+
 	RouterLink link;
-	const char *name;
 	LCUI_Widget parent;
 
 	link = Widget_GetData(w, router_link_proto);

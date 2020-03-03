@@ -64,8 +64,9 @@ static void RouterView_OnReady(LCUI_Widget w, LCUI_WidgetEvent e, void *arg)
 {
 	size_t index;
 	router_t *router;
-	const char *name;
+	const char *name = NULL;
 	const router_route_t *route;
+
 	LCUI_Widget parent;
 	RouterView view;
 
