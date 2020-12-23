@@ -1,5 +1,5 @@
 add_rules("mode.debug", "mode.release", "mode.coverage")
-add_linkdirs("/usr/local/lib")
+add_headerfiles("include/(**.h)")
 set_warnings("all")
 
 lcpkg_dir = "./lcpkg/installed/$(arch)-$(os)"
